@@ -42,7 +42,9 @@ public class ProcessingContext {
   private static final String NEWLINE = "\n";
 
   private final Types typeUtils;
+
   private final Filer filer;
+
   private final Messager messager;
 
   private final PropertyTypeMap propertyTypeMap = new PropertyTypeMap();
@@ -104,7 +106,6 @@ public class ProcessingContext {
 
   public PropertyType getPropertyType(VariableElement field, String destPackage) {
 
-    String fieldName = field.getSimpleName().toString();
     TypeMirror typeMirror = field.asType();
 
     PropertyType type = propertyTypeMap.getType(typeMirror.toString());
@@ -144,7 +145,8 @@ public class ProcessingContext {
         }
       }
     }
-    logNote("... no PropertyType for fieldName:" + fieldName + " type:" + typeMirror);
+
+    //logNote("... no PropertyType for fieldName:" + fieldName + " type:" + typeMirror);
     return null;
   }
 
@@ -192,25 +194,28 @@ public class ProcessingContext {
     logNote("... writing manifest " + EBEAN_TYPEQUERY_MF);
     writeOnce = true;
     try {
-      JavaFileManager.Location location = StandardLocation.CLASS_OUTPUT;
-
-      FileObject resource = filer.createResource(location, "", META_INF + "/" + EBEAN_TYPEQUERY_MF);
-
-      Writer writer = resource.openWriter();
-      writer.append("packages: ");
-      int count = 0;
-      for (String aPackage : packages) {
-        if (count++ > 0) {
-          writer.append(",");
-        }
-        writer.append(aPackage);
-      }
-
-      writer.append(NEWLINE).append(NEWLINE);
-      writer.flush();
-      writer.close();
+      writeManifest(StandardLocation.CLASS_OUTPUT);
     } catch (IOException e) {
       logError(null, "Error writing manifest " + e);
     }
+  }
+
+  private void writeManifest(JavaFileManager.Location location) throws IOException {
+
+    FileObject resource = filer.createResource(location, "", META_INF + "/" + EBEAN_TYPEQUERY_MF);
+
+    Writer writer = resource.openWriter();
+    writer.append("packages: ");
+    int count = 0;
+    for (String aPackage : packages) {
+      if (count++ > 0) {
+        writer.append(",");
+      }
+      writer.append(aPackage);
+    }
+
+    writer.append(NEWLINE).append(NEWLINE);
+    writer.flush();
+    writer.close();
   }
 }

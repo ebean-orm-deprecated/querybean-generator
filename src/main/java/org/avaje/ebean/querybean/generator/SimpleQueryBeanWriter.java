@@ -19,8 +19,6 @@ import java.util.TreeSet;
  */
 public class SimpleQueryBeanWriter {
 
-  //protected static final Logger logger = LoggerFactory.getLogger(SimpleQueryBeanWriter.class);
-
   public static final String NEWLINE = "\n";
 
   private final Set<String> importTypes = new TreeSet<>();
@@ -52,13 +50,11 @@ public class SimpleQueryBeanWriter {
     this.shortName = deriveShortName(beanFullName);
 
     processingContext.addPackage(destPackage);
-
-    System.out.println("beanFullName [" + beanFullName + "] destPackage[" + destPackage + "] shortName:"+shortName);
   }
 
   protected void gatherPropertyDetails() {
 
-    importTypes.add(beanFullName);//asDotNotation(element.getQualifiedName().toString()));
+    importTypes.add(beanFullName);
     importTypes.add("org.avaje.ebean.typequery.TQRootBean");
     importTypes.add("org.avaje.ebean.typequery.TypeQueryBean");
     importTypes.add("com.avaje.ebean.EbeanServer");
@@ -77,17 +73,10 @@ public class SimpleQueryBeanWriter {
     List<VariableElement> fields = processingContext.allFields(element);
 
     for (VariableElement field : fields) {
-      String name = field.getSimpleName().toString();
-      //ElementKind kind = field.getKind();
-      TypeMirror typeMirror = field.asType();
-
       PropertyType type = processingContext.getPropertyType(field, destPackage);
-      if (type == null) {
-        System.out.println("No support for field [" + name + "] desc[" + typeMirror + "] signature [" + "" + "]");
-      } else {
+      if (type != null) {
         type.addImports(importTypes);
-        System.out.println("field name: "+name);
-        properties.add(new PropertyMeta(name, type));
+        properties.add(new PropertyMeta(field.getSimpleName().toString(), type));
       }
     }
   }
@@ -157,10 +146,6 @@ public class SimpleQueryBeanWriter {
       importTypes.add("org.avaje.ebean.typequery.TQProperty");
       importTypes.add(origDestPackage + ".Q" + origShortName);
     }
-
-//    if (!config.isAopStyle()) {
-//      importTypes.add("org.avaje.ebean.typequery.TQPath");
-//    }
 
     // remove imports for the same package
     Iterator<String> importsIterator = importTypes.iterator();
@@ -239,18 +224,6 @@ public class SimpleQueryBeanWriter {
     writer.append("  public Q").append(shortName).append("(String name, R root) {").append(NEWLINE);
     writer.append("    super(name, root);").append(NEWLINE);
     writer.append("  }").append(NEWLINE);
-  }
-
-  /**
-   * Return true if this has at least one 'assoc' property.
-   */
-  protected boolean hasAssocProperties() {
-    for (PropertyMeta property : properties) {
-      if (property.isAssociation()) {
-        return true;
-      }
-    }
-    return false;
   }
 
   /**
@@ -335,34 +308,8 @@ public class SimpleQueryBeanWriter {
 
   protected Writer createFileWriter() throws IOException {
 
-//    String fileName = "Q"+shortName+".java";
-
     JavaFileObject jfo = processingContext.createWriter(destPackage + "." + "Q" + shortName);
     return jfo.openWriter();
-
-//    String destDirectory = config.getDestDirectory();
-//    File destDir = new File(destDirectory);
-//
-//    String packageAsDir = asSlashNotation(destPackage);
-//
-//    File packageDir = new File(destDir, packageAsDir);
-//    if (!packageDir.exists() && !packageDir.mkdirs()) {
-//      logger.logError("Failed to create directory [{}] for generated code", packageDir.getAbsoluteFile());
-//    }
-//
-//    File dest = new File(packageDir, fileName);
-//
-//    logger.info("writing {}", dest.getAbsolutePath());
-//
-//    return new FileWriter(dest);
-  }
-
-  protected String asDotNotation(String path) {
-    return path.replace('/', '.');
-  }
-
-  protected String asSlashNotation(String path) {
-    return path.replace('.', '/');
   }
 
   protected String derivePackage(String name) {

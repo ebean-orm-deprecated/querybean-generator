@@ -8,29 +8,24 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.persistence.Embeddable;
 import javax.persistence.Entity;
-import javax.persistence.MappedSuperclass;
 import java.io.IOException;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
- *
+ * Process compiled entity beans and generates 'query beans' for them.
  */
 public class Processor extends AbstractProcessor {
 
   private ProcessingContext processingContext;
 
-  boolean count;
-
   public Processor() {
-
   }
 
   @Override
   public synchronized void init(ProcessingEnvironment processingEnv) {
     super.init(processingEnv);
     this.processingContext = new ProcessingContext(processingEnv);
-    System.out.println("Initialised Processor ");
   }
 
   @Override
@@ -38,7 +33,6 @@ public class Processor extends AbstractProcessor {
 
     Set<String> annotations = new LinkedHashSet<>();
     annotations.add(Entity.class.getCanonicalName());
-    annotations.add(MappedSuperclass.class.getCanonicalName());
     annotations.add(Embeddable.class.getCanonicalName());
     return annotations;
   }
@@ -51,37 +45,37 @@ public class Processor extends AbstractProcessor {
   @Override
   public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
 
+    int entityCount = 0;
+    int embeddableCount = 0;
 
-    processingContext.logNote("process ....");
+    for (Element element : roundEnv.getElementsAnnotatedWith(Entity.class)) {
+      generateQueryBeans(element);
+      entityCount++;
+    }
 
-    //loadMappedSuperclasses(roundEnv);
-
-    Set<? extends Element> elementsAnnotatedWith = roundEnv.getElementsAnnotatedWith(Entity.class);
-    processingContext.logNote("Found "+elementsAnnotatedWith);
-
-    for (Element element : elementsAnnotatedWith) {
-      try {
-        processingContext.logNote("process bean ... "+element.getSimpleName());
-        TypeElement type = (TypeElement)element;
-        SimpleQueryBeanWriter beanWriter = new SimpleQueryBeanWriter(type, processingContext);
-        beanWriter.writeRootBean();
-        beanWriter.writeAssocBean();
-
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
+    for (Element element : roundEnv.getElementsAnnotatedWith(Embeddable.class)) {
+      generateQueryBeans(element);
+      embeddableCount++;
     }
 
     processingContext.writeManifest();
 
+    if (entityCount > 0 || embeddableCount > 0) {
+      processingContext.logNote("Generated query beans for [" + entityCount + "] entities [" + embeddableCount + "] embeddable");
+    }
+
     return true;
   }
 
-//  private void loadMappedSuperclasses(RoundEnvironment roundEnv) {
-//    Set<? extends Element> mapped = roundEnv.getElementsAnnotatedWith(MappedSuperclass.class);
-//    for (Element mappedSuper : mapped) {
-//      processingContext.addMappedSuper(mappedSuper);
-//    }
-//  }
+  private void generateQueryBeans(Element element) {
+    try {
+      SimpleQueryBeanWriter beanWriter = new SimpleQueryBeanWriter((TypeElement)element, processingContext);
+      beanWriter.writeRootBean();
+      beanWriter.writeAssocBean();
+
+    } catch (IOException e) {
+      processingContext.logError(element, "Error generating query beans: " + e);
+    }
+  }
 
 }
