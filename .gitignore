@@ -1,0 +1,14 @@
+*.orig
+.classpath
+.project
+.settings/
+target/
+logs/
+log/
+out/
+
+# Intellij project files
+*.iml
+*.ipr
+*.iws
+.idea/
