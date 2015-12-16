@@ -39,7 +39,7 @@ public class Processor extends AbstractProcessor {
 
   @Override
   public SourceVersion getSupportedSourceVersion() {
-    return SourceVersion.RELEASE_7;
+    return SourceVersion.latest();
   }
 
   @Override
