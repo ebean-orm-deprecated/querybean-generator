@@ -6,9 +6,9 @@ import com.avaje.ebean.annotation.DbJsonB;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
@@ -84,7 +84,29 @@ public class ProcessingContext {
       gatherProperties(fields, mappedSuper);
     }
 
-    fields.addAll(ElementFilter.fieldsIn(element.getEnclosedElements()));
+    List<VariableElement> allFields = ElementFilter.fieldsIn(element.getEnclosedElements());
+    for (VariableElement field : allFields) {
+      if (!ignoreField(field)) {
+        fields.add(field);
+      }
+    }
+  }
+
+  /**
+   * Not interested in static, transient or Ebean internal fields.
+   */
+  private boolean ignoreField(VariableElement field) {
+    return isStaticOrTransient(field) || ignoreEbeanInternalFields(field);
+  }
+
+  private boolean ignoreEbeanInternalFields(VariableElement field) {
+    String fieldName = field.getSimpleName().toString();
+    return fieldName.startsWith("_ebean") || fieldName.startsWith("_EBEAN");
+  }
+
+  private boolean isStaticOrTransient(VariableElement field) {
+    Set<Modifier> modifiers = field.getModifiers();
+    return (modifiers.contains(Modifier.STATIC) || modifiers.contains(Modifier.TRANSIENT));
   }
 
   private boolean isMappedSuper(Element mappedSuper) {
