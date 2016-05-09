@@ -1,5 +1,6 @@
 package org.avaje.ebean.querybean.generator;
 
+import com.avaje.ebean.annotation.DbArray;
 import com.avaje.ebean.annotation.DbJson;
 import com.avaje.ebean.annotation.DbJsonB;
 
@@ -126,6 +127,13 @@ public class ProcessingContext {
         || field.getAnnotation(DbJsonB.class) != null);
   }
 
+  /**
+   * Return true if it is a DbArray field.
+   */
+  public static boolean dbArrayField(Element field) {
+    return (field.getAnnotation(DbArray.class) != null);
+  }
+
   public PropertyType getPropertyType(VariableElement field, String destPackage) {
 
     TypeMirror typeMirror = field.asType();
@@ -138,6 +146,14 @@ public class ProcessingContext {
 
     if (dbJsonField(field)) {
       return propertyTypeMap.getDbJsonType();
+    }
+
+    if (dbArrayField(field)) {
+      // get generic parameter type
+      DeclaredType declaredType = (DeclaredType)typeMirror;
+      String argType = declaredType.getTypeArguments().get(0).toString();
+      String shortName = deriveShortName(argType);
+      return new PropertyTypeArray(argType, shortName);
     }
 
     Element fieldType = typeUtils.asElement(typeMirror);
