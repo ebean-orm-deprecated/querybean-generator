@@ -3,7 +3,6 @@ package org.avaje.ebean.querybean.generator;
 
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
-import javax.lang.model.type.TypeMirror;
 import javax.persistence.Entity;
 import javax.tools.JavaFileObject;
 import java.io.IOException;
@@ -17,9 +16,9 @@ import java.util.TreeSet;
 /**
  * A simple implementation that generates and writes query beans.
  */
-public class SimpleQueryBeanWriter {
+class SimpleQueryBeanWriter {
 
-  public static final String NEWLINE = "\n";
+  static final String NEWLINE = "\n";
 
   private final Set<String> importTypes = new TreeSet<>();
 
@@ -33,15 +32,15 @@ public class SimpleQueryBeanWriter {
   private boolean writingAssocBean;
 
   private String destPackage;
-  protected String origDestPackage;
+  private String origDestPackage;
 
-  protected String shortName;
-  protected String origShortName;
+  private String shortName;
+  private String origShortName;
 
-  protected Writer writer;
+  private Writer writer;
 
 
-  public SimpleQueryBeanWriter(TypeElement element, ProcessingContext processingContext) {
+  SimpleQueryBeanWriter(TypeElement element, ProcessingContext processingContext) {
     this.element = element;
     this.processingContext = processingContext;
 
@@ -52,7 +51,7 @@ public class SimpleQueryBeanWriter {
     processingContext.addPackage(destPackage);
   }
 
-  protected void gatherPropertyDetails() {
+  private void gatherPropertyDetails() {
 
     importTypes.add(beanFullName);
     importTypes.add("org.avaje.ebean.typequery.TQRootBean");
@@ -68,12 +67,12 @@ public class SimpleQueryBeanWriter {
    * Includes properties from mapped super classes and usual inheritance.
    * </p>
    */
-  protected void addClassProperties() {
+  private void addClassProperties() {
 
     List<VariableElement> fields = processingContext.allFields(element);
 
     for (VariableElement field : fields) {
-      PropertyType type = processingContext.getPropertyType(field, destPackage);
+      PropertyType type = processingContext.getPropertyType(field);
       if (type != null) {
         type.addImports(importTypes);
         properties.add(new PropertyMeta(field.getSimpleName().toString(), type));
@@ -84,7 +83,7 @@ public class SimpleQueryBeanWriter {
   /**
    * Write the type query bean (root bean).
    */
-  public void writeRootBean() throws IOException {
+  void writeRootBean() throws IOException {
 
     gatherPropertyDetails();
 
@@ -111,7 +110,7 @@ public class SimpleQueryBeanWriter {
   /**
    * Write the type query assoc bean.
    */
-  public void writeAssocBean() throws IOException {
+  void writeAssocBean() throws IOException {
 
     writingAssocBean = true;
     origDestPackage = destPackage;
@@ -137,7 +136,7 @@ public class SimpleQueryBeanWriter {
   /**
    * Prepare the imports for writing assoc bean.
    */
-  protected void prepareAssocBeanImports() {
+  private void prepareAssocBeanImports() {
 
     importTypes.remove("org.avaje.ebean.typequery.TQRootBean");
     importTypes.remove("com.avaje.ebean.EbeanServer");
@@ -149,10 +148,10 @@ public class SimpleQueryBeanWriter {
 
     // remove imports for the same package
     Iterator<String> importsIterator = importTypes.iterator();
+    String checkImportStart = destPackage + ".QAssoc";
     while (importsIterator.hasNext()){
       String importType = importsIterator.next();
-      // there are no subpackages so just use startsWith(destPackage)
-      if (importType.startsWith(destPackage)) {
+      if (importType.startsWith(checkImportStart)) {
         importsIterator.remove();
       }
     }
@@ -161,7 +160,7 @@ public class SimpleQueryBeanWriter {
   /**
    * Write constructors.
    */
-  protected void writeConstructors() throws IOException {
+  private void writeConstructors() throws IOException {
 
     if (writingAssocBean) {
       writeAssocBeanFetch();
@@ -174,7 +173,7 @@ public class SimpleQueryBeanWriter {
   /**
    * Write the constructors for 'root' type query bean.
    */
-  protected void writeRootBeanConstructor() throws IOException {
+  private void writeRootBeanConstructor() throws IOException {
 
     writer.append(NEWLINE);
     writer.append("  /**").append(NEWLINE);
@@ -201,7 +200,7 @@ public class SimpleQueryBeanWriter {
     writer.append("  }").append(NEWLINE);
   }
 
-  protected void writeAssocBeanFetch() throws IOException {
+  private void writeAssocBeanFetch() throws IOException {
 
     if (isEntity()) {
       writer.append("  /**").append(NEWLINE);
@@ -218,7 +217,7 @@ public class SimpleQueryBeanWriter {
   /**
    * Write constructor for 'assoc' type query bean.
    */
-  protected void writeAssocBeanConstructor() throws IOException {
+  private void writeAssocBeanConstructor() throws IOException {
 
     // minimal constructor
     writer.append("  public Q").append(shortName).append("(String name, R root) {").append(NEWLINE);
@@ -229,7 +228,7 @@ public class SimpleQueryBeanWriter {
   /**
    * Write all the fields.
    */
-  protected void writeFields() throws IOException {
+  private void writeFields() throws IOException {
 
     for (PropertyMeta property : properties) {
       property.writeFieldDefn(writer, shortName, writingAssocBean);
@@ -241,7 +240,7 @@ public class SimpleQueryBeanWriter {
   /**
    * Write the class definition.
    */
-  protected void writeClass() throws IOException {
+  private void writeClass() throws IOException {
 
     if (writingAssocBean) {
       writer.append("/**").append(NEWLINE);
@@ -269,7 +268,7 @@ public class SimpleQueryBeanWriter {
     writer.append(NEWLINE);
   }
 
-  protected void writeAlias() throws IOException {
+  private void writeAlias() throws IOException {
     if (!writingAssocBean) {
       writer.append("  private static final Q").append(shortName).append(" _alias = new Q");
       writer.append(shortName).append("(true);").append(NEWLINE);
@@ -286,14 +285,14 @@ public class SimpleQueryBeanWriter {
     }
   }
 
-  protected void writeClassEnd() throws IOException {
+  private void writeClassEnd() throws IOException {
     writer.append("}").append(NEWLINE);
   }
 
   /**
    * Write all the imports.
    */
-  protected void writeImports() throws IOException {
+  private void writeImports() throws IOException {
 
     for (String importType : importTypes) {
       writer.append("import ").append(importType).append(";").append(NEWLINE);
@@ -301,25 +300,26 @@ public class SimpleQueryBeanWriter {
     writer.append(NEWLINE);
   }
 
-  protected void writePackage() throws IOException {
+  private void writePackage() throws IOException {
     writer.append("package ").append(destPackage).append(";").append(NEWLINE).append(NEWLINE);
   }
 
 
-  protected Writer createFileWriter() throws IOException {
+  private Writer createFileWriter() throws IOException {
 
     JavaFileObject jfo = processingContext.createWriter(destPackage + "." + "Q" + shortName);
     return jfo.openWriter();
   }
 
-  protected String derivePackage(String name) {
+  private String derivePackage(String name) {
     int pos = name.lastIndexOf('.');
     if (pos == -1) {
       return "";
     }
     return name.substring(0, pos);
   }
-  protected String deriveShortName(String name) {
+
+  private String deriveShortName(String name) {
     int pos = name.lastIndexOf('.');
     if (pos == -1) {
       return name;

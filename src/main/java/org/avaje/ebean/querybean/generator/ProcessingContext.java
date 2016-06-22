@@ -122,7 +122,6 @@ public class ProcessingContext {
    * Return true if it is a DbJson field.
    */
   public static boolean dbJsonField(Element field) {
-
     return (field.getAnnotation(DbJson.class) != null
         || field.getAnnotation(DbJsonB.class) != null);
   }
@@ -134,7 +133,7 @@ public class ProcessingContext {
     return (field.getAnnotation(DbArray.class) != null);
   }
 
-  public PropertyType getPropertyType(VariableElement field, String destPackage) {
+  public PropertyType getPropertyType(VariableElement field) {
 
     TypeMirror typeMirror = field.asType();
 
@@ -151,23 +150,21 @@ public class ProcessingContext {
     if (dbArrayField(field)) {
       // get generic parameter type
       DeclaredType declaredType = (DeclaredType)typeMirror;
-      String argType = declaredType.getTypeArguments().get(0).toString();
-      String shortName = deriveShortName(argType);
-      return new PropertyTypeArray(argType, shortName);
+      String fullType = declaredType.getTypeArguments().get(0).toString();
+      return new PropertyTypeArray(fullType, Split.shortName(fullType));
     }
 
     Element fieldType = typeUtils.asElement(typeMirror);
 
     if (fieldType != null) {
       if (fieldType.getKind() == ElementKind.ENUM) {
-        String fieldTypeClassName = typeMirror.toString();
-        return new PropertyTypeEnum(fieldTypeClassName, deriveShortName(fieldTypeClassName));
+        String fullType = typeMirror.toString();
+        return new PropertyTypeEnum(fullType, Split.shortName(fullType));
       }
 
       if (isEntity(fieldType)) {
         //  public QAssocContact<QCustomer> contacts;
-        String propertyName = "QAssoc" + deriveShortName(typeMirror.toString());
-        return new PropertyTypeAssoc(propertyName, destPackage + ".assoc");
+        return createPropertyTypeAssoc(typeMirror.toString());
       }
 
       if (typeMirror.getKind() == TypeKind.DECLARED) {
@@ -177,23 +174,35 @@ public class ProcessingContext {
           TypeMirror argType = typeArguments.get(0);
           Element argElement = typeUtils.asElement(argType);
           if (isEntity(argElement)) {
-            String propertyName = "QAssoc" + deriveShortName(argElement.asType().toString());
-            return new PropertyTypeAssoc(propertyName, destPackage + ".assoc");
+            return createPropertyTypeAssoc(argElement.asType().toString());
           }
         }
       }
     }
 
-    //logNote("... no PropertyType for fieldName:" + fieldName + " type:" + typeMirror);
     return null;
   }
 
-  protected String deriveShortName(String className) {
-    int startPos = className.lastIndexOf('.');
-    if (startPos == -1) {
-      return className;
+  /**
+   * Create the QAssoc PropertyType.
+   */
+  private PropertyType createPropertyTypeAssoc(String fullName) {
+
+    String[] split = Split.split(fullName);
+    String propertyName = "QAssoc" + split[1];
+    String packageName = packageAppend(split[0], "query.assoc");
+    return new PropertyTypeAssoc(propertyName, packageName);
+  }
+
+  /**
+   * Prepend the package to the suffix taking null into account.
+   */
+  private String packageAppend(String origPackage, String suffix) {
+    if (origPackage == null) {
+      return suffix;
+    } else {
+      return origPackage + "." + suffix;
     }
-    return className.substring(startPos + 1);
   }
 
   /**
