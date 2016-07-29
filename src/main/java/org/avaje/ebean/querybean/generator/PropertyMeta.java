@@ -66,4 +66,10 @@ public class PropertyMeta {
     }
   }
 
+  public void writeFieldAliasDefn(Writer writer, String shortName) throws IOException {
+
+    writer.append("    public static ");
+    writer.append(getTypeDefn(shortName, false));
+    writer.append(" ").append(name).append(" = _alias.").append(name).append(";");
+  }
 }
