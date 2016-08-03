@@ -4,7 +4,7 @@
 
   <groupId>org.avaje.ebeanorm</groupId>
   <artifactId>querybean-generator</artifactId>
-  <version>2.4.2-SNAPSHOT</version>
+  <version>8.1.1-SNAPSHOT</version>
 
   <parent>
     <groupId>org.avaje</groupId>
@@ -24,14 +24,14 @@
     <dependency>
       <groupId>org.avaje.ebeanorm</groupId>
       <artifactId>avaje-ebeanorm-querybean</artifactId>
-      <version>7.13.1</version>
+      <version>8.1.1</version>
     </dependency>
 
     <!-- Look for DbJson annotations -->
     <dependency>
       <groupId>org.avaje.ebeanorm</groupId>
       <artifactId>avaje-ebeanorm</artifactId>
-      <version>7.14.1</version>
+      <version>8.1.1</version>
       <scope>provided</scope>
     </dependency>
 

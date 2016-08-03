@@ -204,15 +204,22 @@ class SimpleQueryBeanWriter {
   private void writeAssocBeanFetch() throws IOException {
 
     if (isEntity()) {
-      writer.append("  /**").append(NEWLINE);
-      writer.append("   * Eagerly fetch this association loading the specified properties.").append(NEWLINE);
-      writer.append("   */").append(NEWLINE);
-      writer.append("  @SafeVarargs").append(NEWLINE);
-      writer.append("  public final R fetch(TQProperty<Q").append(origShortName).append(">... properties) {").append(NEWLINE);
-      writer.append("    return fetchProperties(properties);").append(NEWLINE);
-      writer.append("  }").append(NEWLINE);
-      writer.append(NEWLINE);
+      writeAssocBeanFetch("", "Eagerly fetch this association loading the specified properties.");
+      writeAssocBeanFetch("Query", "Eagerly fetch this association using a 'query join' loading the specified properties.");
+      writeAssocBeanFetch("Lazy", "Use lazy loading for this association loading the specified properties.");
     }
+  }
+
+  private void writeAssocBeanFetch(String fetchType, String comment) throws IOException {
+
+    writer.append("  /**").append(NEWLINE);
+    writer.append("   * ").append(comment).append(NEWLINE);
+    writer.append("   */").append(NEWLINE);
+    writer.append("  @SafeVarargs").append(NEWLINE);
+    writer.append("  public final R fetch").append(fetchType).append("(TQProperty<Q").append(origShortName).append(">... properties) {").append(NEWLINE);
+    writer.append("    return fetch").append(fetchType).append("Properties(properties);").append(NEWLINE);
+    writer.append("  }").append(NEWLINE);
+    writer.append(NEWLINE);
   }
 
   /**
