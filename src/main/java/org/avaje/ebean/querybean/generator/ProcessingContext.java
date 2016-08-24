@@ -17,6 +17,7 @@ import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.Types;
+import javax.persistence.Embeddable;
 import javax.persistence.Entity;
 import javax.persistence.MappedSuperclass;
 import javax.tools.Diagnostic;
@@ -114,8 +115,9 @@ public class ProcessingContext {
     return mappedSuper.getAnnotation(MappedSuperclass.class) != null;
   }
 
-  private boolean isEntity(Element mappedSuper) {
-    return mappedSuper.getAnnotation(Entity.class) != null;
+  private boolean isEntityOrEmbedded(Element mappedSuper) {
+    return mappedSuper.getAnnotation(Entity.class) != null
+        || mappedSuper.getAnnotation(Embeddable.class) != null;
   }
 
   /**
@@ -162,7 +164,7 @@ public class ProcessingContext {
         return new PropertyTypeEnum(fullType, Split.shortName(fullType));
       }
 
-      if (isEntity(fieldType)) {
+      if (isEntityOrEmbedded(fieldType)) {
         //  public QAssocContact<QCustomer> contacts;
         return createPropertyTypeAssoc(typeMirror.toString());
       }
@@ -173,7 +175,7 @@ public class ProcessingContext {
         if (typeArguments.size() == 1) {
           TypeMirror argType = typeArguments.get(0);
           Element argElement = typeUtils.asElement(argType);
-          if (isEntity(argElement)) {
+          if (isEntityOrEmbedded(argElement)) {
             return createPropertyTypeAssoc(argElement.asType().toString());
           }
         }
