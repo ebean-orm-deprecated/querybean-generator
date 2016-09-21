@@ -143,10 +143,16 @@ public class ProcessingContext {
 
     TypeMirror typeMirror = field.asType();
 
-    PropertyType type = propertyTypeMap.getType(typeMirror.toString());
-    if (type != null) {
-      // simple scalar type
-      return type;
+    TypeMirror currentType = typeMirror;
+    while (currentType != null) {
+    	PropertyType type = propertyTypeMap.getType(currentType.toString());
+        if (type != null) {
+          // simple scalar type
+          return type;
+        }
+        // go up in class hierarchy
+        TypeElement fieldType = (TypeElement) typeUtils.asElement(currentType);
+        currentType = (fieldType == null) ? null : fieldType.getSuperclass();
     }
 
     if (dbJsonField(field)) {
