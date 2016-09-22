@@ -25,7 +25,11 @@ import javax.tools.FileObject;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
+import javax.tools.Diagnostic.Kind;
+
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.Reader;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -251,6 +255,28 @@ public class ProcessingContext {
 
   private void writeManifest(JavaFileManager.Location location) throws IOException {
 
+	  try {
+		  // When eclipse does a partial build, not all classes are processed by the processor
+		  // which leads to an incomplete typequery.mf file. (some packages missing)
+		  // Then, the enhancer will not enhance all packages.
+		  FileObject descFile = filer.getResource(location, "", META_INF + "/" + EBEAN_TYPEQUERY_MF);
+		  Reader reader = descFile.openReader(true);
+		  BufferedReader br = new BufferedReader(reader);
+		  try {
+			  String line = br.readLine();
+			  line = line.replace("packages:", "").trim();
+			  String[] pkgs = line.split(",");
+			  for (String pkg : pkgs) {
+				  packages.add(pkg.trim());
+			  }
+		  } finally {
+			  br.close();
+		  }
+		  messager.printMessage(Kind.NOTE, "... re-read the manifest.");
+	  } catch (IOException e) {
+		  // file does not exist, ignore and build new one
+	  }
+	
     FileObject resource = filer.createResource(location, "", META_INF + "/" + EBEAN_TYPEQUERY_MF);
 
     Writer writer = resource.openWriter();

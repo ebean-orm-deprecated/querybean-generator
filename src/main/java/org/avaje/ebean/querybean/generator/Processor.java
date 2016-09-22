@@ -73,7 +73,7 @@ public class Processor extends AbstractProcessor {
       beanWriter.writeRootBean();
       beanWriter.writeAssocBean();
 
-    } catch (IOException e) {
+    } catch (Exception e) { // catch also runtime-exceptions here
       processingContext.logError(element, "Error generating query beans: " + e);
     }
   }
