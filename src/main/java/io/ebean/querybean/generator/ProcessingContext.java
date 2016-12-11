@@ -1,8 +1,8 @@
-package org.avaje.ebean.querybean.generator;
+package io.ebean.querybean.generator;
 
-import com.avaje.ebean.annotation.DbArray;
-import com.avaje.ebean.annotation.DbJson;
-import com.avaje.ebean.annotation.DbJsonB;
+import io.ebean.annotation.DbArray;
+import io.ebean.annotation.DbJson;
+import io.ebean.annotation.DbJsonB;
 
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;

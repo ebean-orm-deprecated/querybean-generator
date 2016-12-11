@@ -1,4 +1,4 @@
-package org.avaje.ebean.querybean.generator;
+package io.ebean.querybean.generator;
 
 /**
  * Helper for splitting package and class name.

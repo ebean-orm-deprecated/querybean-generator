@@ -1,4 +1,4 @@
-package org.avaje.ebean.querybean.generator;
+package io.ebean.querybean.generator;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -8,7 +8,6 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.persistence.Embeddable;
 import javax.persistence.Entity;
-import java.io.IOException;
 import java.util.LinkedHashSet;
 import java.util.Set;
 

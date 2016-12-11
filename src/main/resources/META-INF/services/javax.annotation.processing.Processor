@@ -1,1 +1,1 @@
-org.avaje.ebean.querybean.generator.Processor
+io.ebean.querybean.generator.Processor

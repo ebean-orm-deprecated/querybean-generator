@@ -1,4 +1,4 @@
-package org.avaje.ebean.querybean.generator;
+package io.ebean.querybean.generator;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -53,7 +53,7 @@ public class PropertyType {
    */
   public void addImports(Set<String> allImports) {
 
-    allImports.add("org.avaje.ebean.typequery." + propertyType);
+    allImports.add("io.ebean.typequery." + propertyType);
   }
 
   /**

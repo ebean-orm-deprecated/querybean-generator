@@ -1,4 +1,4 @@
-package org.avaje.ebean.querybean.generator;
+package io.ebean.querybean.generator;
 
 
 import java.util.Set;

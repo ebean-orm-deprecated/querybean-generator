@@ -1,4 +1,4 @@
-package org.avaje.ebean.querybean.generator;
+package io.ebean.querybean.generator;
 
 
 import javax.lang.model.element.TypeElement;
@@ -54,9 +54,9 @@ class SimpleQueryBeanWriter {
   private void gatherPropertyDetails() {
 
     importTypes.add(beanFullName);
-    importTypes.add("org.avaje.ebean.typequery.TQRootBean");
-    importTypes.add("org.avaje.ebean.typequery.TypeQueryBean");
-    importTypes.add("com.avaje.ebean.EbeanServer");
+    importTypes.add("io.ebean.typequery.TQRootBean");
+    importTypes.add("io.ebean.typequery.TypeQueryBean");
+    importTypes.add("io.ebean.EbeanServer");
 
     addClassProperties();
   }
@@ -139,11 +139,11 @@ class SimpleQueryBeanWriter {
    */
   private void prepareAssocBeanImports() {
 
-    importTypes.remove("org.avaje.ebean.typequery.TQRootBean");
-    importTypes.remove("com.avaje.ebean.EbeanServer");
-    importTypes.add("org.avaje.ebean.typequery.TQAssocBean");
+    importTypes.remove("io.ebean.typequery.TQRootBean");
+    importTypes.remove("io.ebean.EbeanServer");
+    importTypes.add("io.ebean.typequery.TQAssocBean");
     if (isEntity()) {
-      importTypes.add("org.avaje.ebean.typequery.TQProperty");
+      importTypes.add("io.ebean.typequery.TQProperty");
       importTypes.add(origDestPackage + ".Q" + origShortName);
     }
 
