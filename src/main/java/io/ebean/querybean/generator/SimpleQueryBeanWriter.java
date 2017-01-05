@@ -330,7 +330,7 @@ class SimpleQueryBeanWriter {
 
   private Writer createFileWriter() throws IOException {
 
-    JavaFileObject jfo = processingContext.createWriter(destPackage + "." + "Q" + shortName);
+    JavaFileObject jfo = processingContext.createWriter(destPackage + "." + "Q" + shortName, element);
     return jfo.openWriter();
   }
 

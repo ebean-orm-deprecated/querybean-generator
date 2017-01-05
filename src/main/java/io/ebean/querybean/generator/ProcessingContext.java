@@ -220,8 +220,8 @@ public class ProcessingContext {
   /**
    * Create a file writer for the given class name.
    */
-  public JavaFileObject createWriter(String factoryClassName) throws IOException {
-    return filer.createSourceFile(factoryClassName);
+  public JavaFileObject createWriter(String factoryClassName, Element originatingElement) throws IOException {
+    return filer.createSourceFile(factoryClassName, originatingElement);
   }
 
   /**
