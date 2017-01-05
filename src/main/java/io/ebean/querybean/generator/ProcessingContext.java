@@ -285,18 +285,23 @@ public class ProcessingContext {
 	
     FileObject resource = filer.createResource(location, "", META_INF + "/" + EBEAN_TYPEQUERY_MF);
 
-    Writer writer = resource.openWriter();
+    try (Writer writer = resource.openWriter()) {
+      writeManifest(writer, packages);
+    }
+  }
+
+  //Visible for testing
+  static void writeManifest(final Writer writer, Set<String> packages) throws IOException {
     writer.append("packages: ");
     int count = 0;
     for (String aPackage : packages) {
       if (count++ > 0) {
-        writer.append(",");
+        writer.append(",\n ");
       }
       writer.append(aPackage);
     }
 
     writer.append(NEWLINE).append(NEWLINE);
     writer.flush();
-    writer.close();
   }
 }
