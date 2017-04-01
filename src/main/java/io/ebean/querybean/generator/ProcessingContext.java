@@ -269,7 +269,12 @@ public class ProcessingContext {
 		  Reader reader = descFile.openReader(true);
 		  BufferedReader br = new BufferedReader(reader);
 		  try {
-			  String line = br.readLine();
+			  String line; 
+			  StringBuilder sb = new StringBuilder();
+			  while ((line = br.readLine()) != null) {
+				  sb.append(line);
+			  }
+			  line = sb.toString();
 			  line = line.replace("packages:", "").trim();
 			  String[] pkgs = line.split(",");
 			  for (String pkg : pkgs) {
@@ -278,7 +283,7 @@ public class ProcessingContext {
 		  } finally {
 			  br.close();
 		  }
-		  messager.printMessage(Kind.NOTE, "... re-read the manifest.");
+		  messager.printMessage(Kind.NOTE, "... re-read the typequery-manifest. Got " + packages.size() + " packages.");
 	  } catch (IOException e) {
 		  // file does not exist, ignore and build new one
 	  }
