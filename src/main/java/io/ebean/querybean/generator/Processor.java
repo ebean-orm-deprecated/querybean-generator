@@ -57,8 +57,6 @@ public class Processor extends AbstractProcessor {
       embeddableCount++;
     }
 
-    processingContext.writeManifest();
-
     if (entityCount > 0 || embeddableCount > 0) {
       processingContext.logNote("Generated query beans for [" + entityCount + "] entities [" + embeddableCount + "] embeddable");
     }

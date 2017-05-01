@@ -21,16 +21,8 @@ import javax.persistence.Embeddable;
 import javax.persistence.Entity;
 import javax.persistence.MappedSuperclass;
 import javax.tools.Diagnostic;
-import javax.tools.FileObject;
-import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
-import javax.tools.StandardLocation;
-import javax.tools.Diagnostic.Kind;
-
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -40,12 +32,6 @@ import java.util.Set;
  * Context for the source generation.
  */
 public class ProcessingContext {
-
-  private static final String EBEAN_TYPEQUERY_MF = "ebean-typequery.mf";
-
-  private static final String META_INF = "META-INF";
-
-  private static final String NEWLINE = "\n";
 
   private final Types typeUtils;
 
@@ -59,8 +45,6 @@ public class ProcessingContext {
    * The set of packages that query beans are generated into.
    */
   private final Set<String> packages = new LinkedHashSet<>();
-
-  private boolean writeOnce;
 
   public ProcessingContext(ProcessingEnvironment processingEnv) {
     this.typeUtils = processingEnv.getTypeUtils();
@@ -245,68 +229,4 @@ public class ProcessingContext {
     packages.add(destPackage);
   }
 
-  public void writeManifest() {
-
-    if (writeOnce) {
-      return;
-    }
-    logNote("... writing manifest " + EBEAN_TYPEQUERY_MF);
-    writeOnce = true;
-    try {
-      writeManifest(StandardLocation.CLASS_OUTPUT);
-    } catch (IOException e) {
-      logError(null, "Error writing manifest " + e);
-    }
-  }
-
-  private void writeManifest(JavaFileManager.Location location) throws IOException {
-
-	  try {
-		  // When eclipse does a partial build, not all classes are processed by the processor
-		  // which leads to an incomplete typequery.mf file. (some packages missing)
-		  // Then, the enhancer will not enhance all packages.
-		  FileObject descFile = filer.getResource(location, "", META_INF + "/" + EBEAN_TYPEQUERY_MF);
-		  Reader reader = descFile.openReader(true);
-		  BufferedReader br = new BufferedReader(reader);
-		  try {
-			  String line; 
-			  StringBuilder sb = new StringBuilder();
-			  while ((line = br.readLine()) != null) {
-				  sb.append(line);
-			  }
-			  line = sb.toString();
-			  line = line.replace("packages:", "").trim();
-			  String[] pkgs = line.split(",");
-			  for (String pkg : pkgs) {
-				  packages.add(pkg.trim());
-			  }
-		  } finally {
-			  br.close();
-		  }
-		  messager.printMessage(Kind.NOTE, "... re-read the typequery-manifest. Got " + packages.size() + " packages.");
-	  } catch (IOException e) {
-		  // file does not exist, ignore and build new one
-	  }
-	
-    FileObject resource = filer.createResource(location, "", META_INF + "/" + EBEAN_TYPEQUERY_MF);
-
-    try (Writer writer = resource.openWriter()) {
-      writeManifest(writer, packages);
-    }
-  }
-
-  //Visible for testing
-  static void writeManifest(final Writer writer, Set<String> packages) throws IOException {
-    writer.append("packages: ");
-    int count = 0;
-    for (String aPackage : packages) {
-      if (count++ > 0) {
-        writer.append(",\n ");
-      }
-      writer.append(aPackage);
-    }
-
-    writer.append(NEWLINE).append(NEWLINE);
-    writer.flush();
-  }
 }
