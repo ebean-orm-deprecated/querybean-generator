@@ -123,30 +123,17 @@ public class ProcessingContext {
     return (field.getAnnotation(DbArray.class) != null);
   }
 
-//  private static final Pattern ESCAPER = Pattern.compile("\\(.+ :: (.+)\\)");
-//
-//  private static String excape(String typeDesc) {
-//
-//    Matcher m = ESCAPER.matcher(typeDesc);
-//    if (m.matches()) {
-//      return m.group(1);
-//    } else {
-//      return typeDesc;
-//    }
-//  }
-
+	/**
+	 * Escape the type (e.g. java.lang.String) from the TypeMirror toString().
+	 */
   static String typeDef(String typeDesc) {
 
-    // (@javax.validation.constraints.Size(min=1, max=10) :: java.lang.String)
-//    String trimDesc = null;
     int pos = typeDesc.lastIndexOf(" :: ");
     if (pos > -1) {
+	    // (@javax.validation.constraints.Size(min=1, max=10) :: java.lang.String)
       typeDesc = typeDesc.substring(pos + 4, typeDesc.length() - 1);
     }
     return typeDesc;
-//    String excape = excape(typeDesc);
-//    System.out.println("typeDesc: " + typeDesc + " excape:" + excape+ " trimDesc:"+trimDesc);
-//    return excape;
   }
 
   public PropertyType getPropertyType(VariableElement field) {
