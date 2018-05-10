@@ -19,6 +19,7 @@ import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.Types;
 import javax.persistence.Embeddable;
 import javax.persistence.Entity;
+import javax.persistence.Inheritance;
 import javax.persistence.MappedSuperclass;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
@@ -70,7 +71,7 @@ public class ProcessingContext {
     TypeElement typeElement = (TypeElement) element;
     TypeMirror superclass = typeElement.getSuperclass();
     Element mappedSuper = typeUtils.asElement(superclass);
-    if (isMappedSuper(mappedSuper)) {
+    if (isMappedSuperOrInheritance(mappedSuper)) {
       gatherProperties(fields, mappedSuper);
     }
 
@@ -99,8 +100,9 @@ public class ProcessingContext {
     return (modifiers.contains(Modifier.STATIC) || modifiers.contains(Modifier.TRANSIENT));
   }
 
-  private boolean isMappedSuper(Element mappedSuper) {
-    return mappedSuper.getAnnotation(MappedSuperclass.class) != null;
+  private boolean isMappedSuperOrInheritance(Element mappedSuper) {
+    return mappedSuper.getAnnotation(MappedSuperclass.class) != null
+        || mappedSuper.getAnnotation(Inheritance.class) != null;
   }
 
   private boolean isEntityOrEmbedded(Element mappedSuper) {
