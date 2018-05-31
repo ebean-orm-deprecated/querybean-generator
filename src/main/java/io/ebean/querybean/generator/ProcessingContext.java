@@ -102,12 +102,12 @@ public class ProcessingContext {
 
   private boolean isMappedSuperOrInheritance(Element mappedSuper) {
     return mappedSuper.getAnnotation(MappedSuperclass.class) != null
-        || mappedSuper.getAnnotation(Inheritance.class) != null;
+      || mappedSuper.getAnnotation(Inheritance.class) != null;
   }
 
   private boolean isEntityOrEmbedded(Element mappedSuper) {
     return mappedSuper.getAnnotation(Entity.class) != null
-        || mappedSuper.getAnnotation(Embeddable.class) != null;
+      || mappedSuper.getAnnotation(Embeddable.class) != null;
   }
 
   /**
@@ -115,7 +115,7 @@ public class ProcessingContext {
    */
   public static boolean dbJsonField(Element field) {
     return (field.getAnnotation(DbJson.class) != null
-        || field.getAnnotation(DbJsonB.class) != null);
+      || field.getAnnotation(DbJsonB.class) != null);
   }
 
   /**
@@ -125,14 +125,21 @@ public class ProcessingContext {
     return (field.getAnnotation(DbArray.class) != null);
   }
 
-	/**
-	 * Escape the type (e.g. java.lang.String) from the TypeMirror toString().
-	 */
+  /**
+   * Escape the type (e.g. java.lang.String) from the TypeMirror toString().
+   */
+  private static String typeDef(TypeMirror typeMirror) {
+    return typeDef(typeMirror.toString());
+  }
+
+  /**
+   * Escape the type (e.g. java.lang.String) from the TypeMirror toString().
+   */
   static String typeDef(String typeDesc) {
 
     int pos = typeDesc.lastIndexOf(" :: ");
     if (pos > -1) {
-	    // (@javax.validation.constraints.Size(min=1, max=10) :: java.lang.String)
+      // (@javax.validation.constraints.Size(min=1, max=10) :: java.lang.String)
       typeDesc = typeDesc.substring(pos + 4, typeDesc.length() - 1);
     }
     return typeDesc;
@@ -144,14 +151,14 @@ public class ProcessingContext {
 
     TypeMirror currentType = typeMirror;
     while (currentType != null) {
-      PropertyType type = propertyTypeMap.getType(typeDef(currentType.toString()));
-        if (type != null) {
-          // simple scalar type
-          return type;
-        }
-        // go up in class hierarchy
-        TypeElement fieldType = (TypeElement) typeUtils.asElement(currentType);
-        currentType = (fieldType == null) ? null : fieldType.getSuperclass();
+      PropertyType type = propertyTypeMap.getType(typeDef(currentType));
+      if (type != null) {
+        // simple scalar type
+        return type;
+      }
+      // go up in class hierarchy
+      TypeElement fieldType = (TypeElement) typeUtils.asElement(currentType);
+      currentType = (fieldType == null) ? null : fieldType.getSuperclass();
     }
 
     if (dbJsonField(field)) {
@@ -160,8 +167,8 @@ public class ProcessingContext {
 
     if (dbArrayField(field)) {
       // get generic parameter type
-      DeclaredType declaredType = (DeclaredType)typeMirror;
-      String fullType = declaredType.getTypeArguments().get(0).toString();
+      DeclaredType declaredType = (DeclaredType) typeMirror;
+      String fullType = typeDef(declaredType.getTypeArguments().get(0));
       return new PropertyTypeArray(fullType, Split.shortName(fullType));
     }
 
@@ -169,13 +176,13 @@ public class ProcessingContext {
 
     if (fieldType != null) {
       if (fieldType.getKind() == ElementKind.ENUM) {
-        String fullType = typeMirror.toString();
+        String fullType = typeDef(typeMirror);
         return new PropertyTypeEnum(fullType, Split.shortName(fullType));
       }
 
       if (isEntityOrEmbedded(fieldType)) {
         //  public QAssocContact<QCustomer> contacts;
-        return createPropertyTypeAssoc(typeMirror.toString());
+        return createPropertyTypeAssoc(typeDef(typeMirror));
       }
 
       if (typeMirror.getKind() == TypeKind.DECLARED) {
@@ -185,7 +192,7 @@ public class ProcessingContext {
           TypeMirror argType = typeArguments.get(0);
           Element argElement = typeUtils.asElement(argType);
           if (isEntityOrEmbedded(argElement)) {
-            return createPropertyTypeAssoc(argElement.asType().toString());
+            return createPropertyTypeAssoc(typeDef(argElement.asType()));
           }
         }
       }
