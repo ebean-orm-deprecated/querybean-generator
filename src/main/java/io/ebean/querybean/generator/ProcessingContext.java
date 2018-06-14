@@ -106,8 +106,9 @@ public class ProcessingContext {
   }
 
   private boolean isEntityOrEmbedded(Element mappedSuper) {
-    return mappedSuper.getAnnotation(Entity.class) != null
-      || mappedSuper.getAnnotation(Embeddable.class) != null;
+    return mappedSuper != null
+      && (mappedSuper.getAnnotation(Entity.class) != null
+      || mappedSuper.getAnnotation(Embeddable.class) != null);
   }
 
   /**

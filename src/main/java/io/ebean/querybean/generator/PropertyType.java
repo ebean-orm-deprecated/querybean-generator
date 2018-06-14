@@ -23,6 +23,11 @@ public class PropertyType {
     this.propertyType = propertyType;
   }
 
+  @Override
+  public String toString() {
+    return propertyType;
+  }
+
   /**
    * Return true if this is an association type.
    */

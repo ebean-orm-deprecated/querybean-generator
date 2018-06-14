@@ -51,6 +51,8 @@ public class PropertyTypeMap {
     addType(BigInteger.class);
     addType(Calendar.class);
     addType(Currency.class);
+    addType(Class.class);
+    map.put("java.lang.Class<?>", new PropertyType("PClass"));
     addType(File.class);
     addType(InetAddress.class);
 
@@ -102,7 +104,6 @@ public class PropertyTypeMap {
    * Return the property type for the given class description.
    */
   public PropertyType getType(String classDesc) {
-
     return map.get(classDesc);
   }
 
