@@ -10,6 +10,7 @@ import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Currency;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.UUID;
@@ -52,6 +53,7 @@ public class PropertyTypeMap {
     addType(Calendar.class);
     addType(Currency.class);
     addType(Class.class);
+    addType(Locale.class);
     map.put("java.lang.Class<?>", new PropertyType("PClass"));
     addType(File.class);
     addType(InetAddress.class);
