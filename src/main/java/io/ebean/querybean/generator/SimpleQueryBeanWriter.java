@@ -13,6 +13,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+import static io.ebean.querybean.generator.Constants.AT_GENERATED;
+import static io.ebean.querybean.generator.Constants.AT_TYPEQUERYBEAN;
+
 /**
  * A simple implementation that generates and writes query beans.
  */
@@ -54,6 +57,7 @@ class SimpleQueryBeanWriter {
   private void gatherPropertyDetails() {
 
     importTypes.add(beanFullName);
+    importTypes.add("javax.annotation.Generated");
     importTypes.add("io.ebean.typequery.TQRootBean");
     importTypes.add("io.ebean.typequery.TypeQueryBean");
     importTypes.add("io.ebean.EbeanServer");
@@ -257,7 +261,8 @@ class SimpleQueryBeanWriter {
       writer.append(" * THIS IS A GENERATED OBJECT, DO NOT MODIFY THIS CLASS.").append(NEWLINE);
       writer.append(" */").append(NEWLINE);
       //public class QAssocContact<R>
-      writer.append("@TypeQueryBean").append(NEWLINE);
+      writer.append(AT_GENERATED).append(NEWLINE);
+      writer.append(AT_TYPEQUERYBEAN).append(NEWLINE);
       writer.append("public class ").append("Q").append(shortName);
       writer.append("<R> extends TQAssocBean<").append(origShortName).append(",R> {").append(NEWLINE);
 
@@ -268,7 +273,8 @@ class SimpleQueryBeanWriter {
       writer.append(" * THIS IS A GENERATED OBJECT, DO NOT MODIFY THIS CLASS.").append(NEWLINE);
       writer.append(" */").append(NEWLINE);
       //  public class QContact extends TQRootBean<Contact,QContact> {
-      writer.append("@TypeQueryBean").append(NEWLINE);
+      writer.append(AT_GENERATED).append(NEWLINE);
+      writer.append(AT_TYPEQUERYBEAN).append(NEWLINE);
       writer.append("public class ").append("Q").append(shortName)
           .append(" extends TQRootBean<").append(shortName).append(",Q").append(shortName).append("> {").append(NEWLINE);
     }
