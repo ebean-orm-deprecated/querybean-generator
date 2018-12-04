@@ -54,8 +54,6 @@ class SimpleQueryBeanWriter {
     this.beanFullName = element.getQualifiedName().toString();
     this.destPackage = derivePackage(beanFullName)+".query";
     this.shortName = deriveShortName(beanFullName);
-
-    processingContext.addPackage(destPackage);
   }
 
   private void gatherPropertyDetails() {

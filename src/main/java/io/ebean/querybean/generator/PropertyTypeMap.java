@@ -18,7 +18,7 @@ import java.util.UUID;
 /**
  * Holds the Property types and how they match to class types.
  */
-public class PropertyTypeMap {
+class PropertyTypeMap {
 
   /**
    * Property type for Db Json properties.
@@ -27,7 +27,7 @@ public class PropertyTypeMap {
 
   private Map<String,PropertyType> map = new HashMap<>();
 
-  public PropertyTypeMap() {
+  PropertyTypeMap() {
 
     map.put("boolean", new PropertyType("PBoolean"));
     map.put("short", new PropertyType("PShort"));
@@ -105,14 +105,14 @@ public class PropertyTypeMap {
   /**
    * Return the property type for the given class description.
    */
-  public PropertyType getType(String classDesc) {
+  PropertyType getType(String classDesc) {
     return map.get(classDesc);
   }
 
   /**
    * Return the Db Json property type (for DbJson and DbJsonB).
    */
-  public PropertyType getDbJsonType() {
+  PropertyType getDbJsonType() {
     return dbJsonType;
   }
 }
