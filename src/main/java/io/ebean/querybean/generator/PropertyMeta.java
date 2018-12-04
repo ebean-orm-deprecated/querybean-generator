@@ -41,14 +41,14 @@ class PropertyMeta {
     return type.getTypeDefn(shortName, assoc);
   }
 
-  void writeFieldDefn(Writer writer, String shortName, boolean assoc) throws IOException {
+  void writeFieldDefn(Append writer, String shortName, boolean assoc) {
 
     writer.append("  public ");
     writer.append(getTypeDefn(shortName, assoc));
     writer.append(" ").append(name).append(";");
   }
 
-  void writeFieldAliasDefn(Writer writer, String shortName) throws IOException {
+  void writeFieldAliasDefn(Append writer, String shortName) {
 
     writer.append("    public static ");
     writer.append(getTypeDefn(shortName, false));

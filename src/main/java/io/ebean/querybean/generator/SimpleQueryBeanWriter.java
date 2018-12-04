@@ -44,7 +44,7 @@ class SimpleQueryBeanWriter {
   private String shortName;
   private String origShortName;
 
-  private Writer writer;
+  private Append writer;
 
 
   SimpleQueryBeanWriter(TypeElement element, ProcessingContext processingContext) {
@@ -96,7 +96,7 @@ class SimpleQueryBeanWriter {
     gatherPropertyDetails();
 
     if (isEntity()) {
-      writer = createFileWriter();
+      writer = new Append(createFileWriter());
 
       writePackage();
       writeImports();
@@ -107,7 +107,6 @@ class SimpleQueryBeanWriter {
       writeStaticAliasClass();
       writeClassEnd();
 
-      writer.flush();
       writer.close();
     }
   }
@@ -129,7 +128,7 @@ class SimpleQueryBeanWriter {
 
     prepareAssocBeanImports();
 
-    writer = createFileWriter();
+    writer = new Append(createFileWriter());
 
     writePackage();
     writeImports();
@@ -138,7 +137,6 @@ class SimpleQueryBeanWriter {
     writeConstructors();
     writeClassEnd();
 
-    writer.flush();
     writer.close();
   }
 
@@ -184,32 +182,32 @@ class SimpleQueryBeanWriter {
    */
   private void writeRootBeanConstructor() throws IOException {
 
-    writer.append(NEWLINE);
-    writer.append("  /**").append(NEWLINE);
-    writer.append("   * Construct with a given EbeanServer.").append(NEWLINE);
-    writer.append("   */").append(NEWLINE);
-    writer.append("  public Q").append(shortName).append("(EbeanServer server) {").append(NEWLINE);
-    writer.append("    super(").append(shortName).append(".class, server);").append(NEWLINE);
-    writer.append("  }").append(NEWLINE);
-    writer.append(NEWLINE);
+    writer.eol();
+    writer.append("  /**").eol();
+    writer.append("   * Construct with a given EbeanServer.").eol();
+    writer.append("   */").eol();
+    writer.append("  public Q%s(EbeanServer server) {", shortName).eol();
+    writer.append("    super(%s.class, server);", shortName).eol();
+    writer.append("  }").eol();
+    writer.eol();
 
-    writer.append("  /**").append(NEWLINE);
-    writer.append("   * Construct using the default EbeanServer.").append(NEWLINE);
-    writer.append("   */").append(NEWLINE);
-    writer.append("  public Q").append(shortName).append("() {").append(NEWLINE);
-    writer.append("    super(").append(shortName).append(".class);").append(NEWLINE);
-    writer.append("  }").append(NEWLINE);
+    writer.append("  /**").eol();
+    writer.append("   * Construct using the default EbeanServer.").eol();
+    writer.append("   */").eol();
+    writer.append("  public Q%s() {", shortName).eol();
+    writer.append("    super(%s.class);", shortName).eol();
+    writer.append("  }").eol();
 
-    writer.append(NEWLINE);
-    writer.append("  /**").append(NEWLINE);
-    writer.append("   * Construct for Alias.").append(NEWLINE);
-    writer.append("   */").append(NEWLINE);
-    writer.append("  private Q").append(shortName).append("(boolean dummy) {").append(NEWLINE);
-    writer.append("    super(dummy);").append(NEWLINE);
-    writer.append("  }").append(NEWLINE);
+    writer.eol();
+    writer.append("  /**").eol();
+    writer.append("   * Construct for Alias.").eol();
+    writer.append("   */").eol();
+    writer.append("  private Q%s(boolean dummy) {", shortName).eol();
+    writer.append("    super(dummy);").eol();
+    writer.append("  }").eol();
   }
 
-  private void writeAssocBeanFetch() throws IOException {
+  private void writeAssocBeanFetch() {
 
     if (isEntity()) {
       writeAssocBeanFetch("", "Eagerly fetch this association loading the specified properties.");
@@ -218,27 +216,25 @@ class SimpleQueryBeanWriter {
     }
   }
 
-  private void writeAssocBeanFetch(String fetchType, String comment) throws IOException {
+  private void writeAssocBeanFetch(String fetchType, String comment) {
 
-    writer.append("  /**").append(NEWLINE);
-    writer.append("   * ").append(comment).append(NEWLINE);
-    writer.append("   */").append(NEWLINE);
-    writer.append("  @SafeVarargs").append(NEWLINE);
-    writer.append("  public final R fetch").append(fetchType).append("(TQProperty<Q").append(origShortName).append(">... properties) {").append(NEWLINE);
-    writer.append("    return fetch").append(fetchType).append("Properties(properties);").append(NEWLINE);
-    writer.append("  }").append(NEWLINE);
-    writer.append(NEWLINE);
+    writer.append("  /**").eol();
+    writer.append("   * ").append(comment).eol();
+    writer.append("   */").eol();
+    writer.append("  @SafeVarargs").eol();
+    writer.append("  public final R fetch%s(TQProperty<Q%s>... properties) {", fetchType, origShortName).eol();
+    writer.append("    return fetch%sProperties(properties);", fetchType).eol();
+    writer.append("  }").eol();
+    writer.eol();
   }
 
   /**
    * Write constructor for 'assoc' type query bean.
    */
-  private void writeAssocBeanConstructor() throws IOException {
-
-    // minimal constructor
-    writer.append("  public Q").append(shortName).append("(String name, R root) {").append(NEWLINE);
-    writer.append("    super(name, root);").append(NEWLINE);
-    writer.append("  }").append(NEWLINE);
+  private void writeAssocBeanConstructor() {
+    writer.append("  public Q%s(String name, R root) {", shortName).eol();
+    writer.append("    super(name, root);").eol();
+    writer.append("  }").eol();
   }
 
   /**
@@ -248,102 +244,95 @@ class SimpleQueryBeanWriter {
 
     for (PropertyMeta property : properties) {
       property.writeFieldDefn(writer, shortName, writingAssocBean);
-      writer.append(NEWLINE);
+      writer.eol();
     }
-    writer.append(NEWLINE);
+    writer.eol();
   }
 
   /**
    * Write the class definition.
    */
-  private void writeClass() throws IOException {
+  private void writeClass() {
 
     if (writingAssocBean) {
-      writer.append("/**").append(NEWLINE);
-      writer.append(" * Association query bean for ").append(shortName).append(".").append(NEWLINE);
-      writer.append(" * ").append(NEWLINE);
-      writer.append(" * THIS IS A GENERATED OBJECT, DO NOT MODIFY THIS CLASS.").append(NEWLINE);
-      writer.append(" */").append(NEWLINE);
-      //public class QAssocContact<R>
+      writer.append("/**").eol();
+      writer.append(" * Association query bean for %s.", shortName).eol();
+      writer.append(" * ").eol();
+      writer.append(" * THIS IS A GENERATED OBJECT, DO NOT MODIFY THIS CLASS.").eol();
+      writer.append(" */").eol();
       if (processingContext.isGeneratedAvailable()) {
-        writer.append(AT_GENERATED).append(NEWLINE);
+        writer.append(AT_GENERATED).eol();
       }
-      writer.append(AT_TYPEQUERYBEAN).append(NEWLINE);
-      writer.append("public class ").append("Q").append(shortName);
-      writer.append("<R> extends TQAssocBean<").append(origShortName).append(",R> {").append(NEWLINE);
+      writer.append(AT_TYPEQUERYBEAN).eol();
+      writer.append("public class Q%s<R> extends TQAssocBean<%s,R> {", shortName, origShortName).eol();
 
     } else {
-      writer.append("/**").append(NEWLINE);
-      writer.append(" * Query bean for ").append(shortName).append(".").append(NEWLINE);
-      writer.append(" * ").append(NEWLINE);
-      writer.append(" * THIS IS A GENERATED OBJECT, DO NOT MODIFY THIS CLASS.").append(NEWLINE);
-      writer.append(" */").append(NEWLINE);
-      //  public class QContact extends TQRootBean<Contact,QContact> {
+      writer.append("/**").eol();
+      writer.append(" * Query bean for %s.", shortName).eol();
+      writer.append(" * ").eol();
+      writer.append(" * THIS IS A GENERATED OBJECT, DO NOT MODIFY THIS CLASS.").eol();
+      writer.append(" */").eol();
       if (processingContext.isGeneratedAvailable()) {
-        writer.append(AT_GENERATED).append(NEWLINE);
+        writer.append(AT_GENERATED).eol();
       }
-      writer.append(AT_TYPEQUERYBEAN).append(NEWLINE);
-      writer.append("public class ").append("Q").append(shortName)
-          .append(" extends TQRootBean<").append(shortName).append(",Q").append(shortName).append("> {").append(NEWLINE);
+      writer.append(AT_TYPEQUERYBEAN).eol();
+      writer.append("public class Q%s extends TQRootBean<%1$s,Q%1$s> {", shortName).eol();
     }
 
-    writer.append(NEWLINE);
+    writer.eol();
   }
 
   private void writeAlias() throws IOException {
     if (!writingAssocBean) {
-      writer.append("  private static final Q").append(shortName).append(" _alias = new Q");
-      writer.append(shortName).append("(true);").append(NEWLINE);
-      writer.append(NEWLINE);
+      writer.append("  private static final Q%s _alias = new Q%1$s(true);", shortName).eol().eol();
 
-      writer.append("  /**").append(NEWLINE);
-      writer.append("   * Return the shared 'Alias' instance used to provide properties to ").append(NEWLINE);
-      writer.append("   * <code>select()</code> and <code>fetch()</code> ").append(NEWLINE);
-      writer.append("   */").append(NEWLINE);
-      writer.append("  public static Q").append(shortName).append(" alias() {").append(NEWLINE);
-      writer.append("    return _alias;").append(NEWLINE);
-      writer.append("  }").append(NEWLINE);
-      writer.append(NEWLINE);
+      writer.append("  /**").eol();
+      writer.append("   * Return the shared 'Alias' instance used to provide properties to ").eol();
+      writer.append("   * <code>select()</code> and <code>fetch()</code> ").eol();
+      writer.append("   */").eol();
+      writer.append("  public static Q%s alias() {", shortName).eol();
+      writer.append("    return _alias;").eol();
+      writer.append("  }").eol();
+      writer.eol();
     }
   }
 
   private void writeStaticAliasClass() throws IOException {
 
-    writer.append(NEWLINE);
-    writer.append("  /**").append(NEWLINE);
-    writer.append("   * Provides static properties to use in <em> select() and fetch() </em>").append(NEWLINE);
-    writer.append("   * clauses of a query. Typically referenced via static imports. ").append(NEWLINE);
-    writer.append("   */").append(NEWLINE);
-    writer.append("  public static class Alias {").append(NEWLINE);
+    writer.eol();
+    writer.append("  /**").eol();
+    writer.append("   * Provides static properties to use in <em> select() and fetch() </em>").eol();
+    writer.append("   * clauses of a query. Typically referenced via static imports. ").eol();
+    writer.append("   */").eol();
+    writer.append("  public static class Alias {").eol();
     for (PropertyMeta property : properties) {
       property.writeFieldAliasDefn(writer, shortName);
-      writer.append(NEWLINE);
+      writer.eol();
     }
-    writer.append("  }").append(NEWLINE);
+    writer.append("  }").eol();
   }
 
-  private void writeClassEnd() throws IOException {
-    writer.append("}").append(NEWLINE);
+  private void writeClassEnd() {
+    writer.append("}").eol();
   }
 
   /**
    * Write all the imports.
    */
-  private void writeImports() throws IOException {
+  private void writeImports() {
 
     for (String importType : importTypes) {
-      writer.append("import ").append(importType).append(";").append(NEWLINE);
+      writer.append("import %s;", importType).eol();
     }
-    writer.append(NEWLINE);
+    writer.eol();
   }
 
-  private void writePackage() throws IOException {
-    writer.append("package ").append(destPackage).append(";").append(NEWLINE).append(NEWLINE);
+  private void writePackage() {
+    writer.append("package %s;", destPackage).eol().eol();
   }
 
 
   private Writer createFileWriter() throws IOException {
-
     JavaFileObject jfo = processingContext.createWriter(destPackage + "." + "Q" + shortName, element);
     return jfo.openWriter();
   }
