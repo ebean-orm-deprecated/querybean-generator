@@ -9,6 +9,6 @@ class Constants {
   static final String GENERATED = "javax.annotation.Generated";
   static final String TQROOTBEAN = "io.ebean.typequery.TQRootBean";
   static final String TYPEQUERYBEAN = "io.ebean.typequery.TypeQueryBean";
-  static final String EBEANSERVER = "io.ebean.EbeanServer";
+  static final String DATABASE = "io.ebean.Database";
 
 }

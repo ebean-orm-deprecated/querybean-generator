@@ -15,7 +15,7 @@ import java.util.TreeSet;
 
 import static io.ebean.querybean.generator.Constants.AT_GENERATED;
 import static io.ebean.querybean.generator.Constants.AT_TYPEQUERYBEAN;
-import static io.ebean.querybean.generator.Constants.EBEANSERVER;
+import static io.ebean.querybean.generator.Constants.DATABASE;
 import static io.ebean.querybean.generator.Constants.GENERATED;
 import static io.ebean.querybean.generator.Constants.TQROOTBEAN;
 import static io.ebean.querybean.generator.Constants.TYPEQUERYBEAN;
@@ -64,7 +64,7 @@ class SimpleQueryBeanWriter {
     }
     importTypes.add(TQROOTBEAN);
     importTypes.add(TYPEQUERYBEAN);
-    importTypes.add(EBEANSERVER);
+    importTypes.add(DATABASE);
 
     addClassProperties();
   }
@@ -146,7 +146,7 @@ class SimpleQueryBeanWriter {
   private void prepareAssocBeanImports() {
 
     importTypes.remove("io.ebean.typequery.TQRootBean");
-    importTypes.remove("io.ebean.EbeanServer");
+    importTypes.remove("io.ebean.Database");
     importTypes.add("io.ebean.typequery.TQAssocBean");
     if (isEntity()) {
       importTypes.add("io.ebean.typequery.TQProperty");
@@ -184,15 +184,15 @@ class SimpleQueryBeanWriter {
 
     writer.eol();
     writer.append("  /**").eol();
-    writer.append("   * Construct with a given EbeanServer.").eol();
+    writer.append("   * Construct with a given Database.").eol();
     writer.append("   */").eol();
-    writer.append("  public Q%s(EbeanServer server) {", shortName).eol();
+    writer.append("  public Q%s(Database server) {", shortName).eol();
     writer.append("    super(%s.class, server);", shortName).eol();
     writer.append("  }").eol();
     writer.eol();
 
     writer.append("  /**").eol();
-    writer.append("   * Construct using the default EbeanServer.").eol();
+    writer.append("   * Construct using the default Database.").eol();
     writer.append("   */").eol();
     writer.append("  public Q%s() {", shortName).eol();
     writer.append("    super(%s.class);", shortName).eol();
