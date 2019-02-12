@@ -183,6 +183,9 @@ class ProcessingContext {
     Element fieldType = typeUtils.asElement(typeMirror);
 
     if (fieldType != null) {
+      // workaround for https://bugs.eclipse.org/bugs/show_bug.cgi?id=544288
+      fieldType = elementUtils.getTypeElement(fieldType.toString());
+      
       if (fieldType.getKind() == ElementKind.ENUM) {
         String fullType = typeDef(typeMirror);
         return new PropertyTypeEnum(fullType, Split.shortName(fullType));
