@@ -25,6 +25,7 @@ import javax.persistence.MappedSuperclass;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -88,6 +89,23 @@ class ProcessingContext {
         fields.add(field);
       }
     }
+  }
+
+  /**
+   * Find the annotation searching the inheritance hierarchy.
+   */
+  <A extends Annotation> A findAnnotation(TypeElement element, Class<A> anno) {
+
+    final A annotation = element.getAnnotation(anno);
+    if (annotation != null) {
+      return annotation;
+    }
+    final TypeMirror typeMirror = element.getSuperclass();
+    if (typeMirror.getKind() == TypeKind.NONE) {
+      return null;
+    }
+    final TypeElement element1 = (TypeElement)typeUtils.asElement(typeMirror);
+    return findAnnotation(element1, anno);
   }
 
   /**

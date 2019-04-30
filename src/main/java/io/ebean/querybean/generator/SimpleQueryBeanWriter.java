@@ -1,6 +1,8 @@
 package io.ebean.querybean.generator;
 
 
+import io.ebean.annotation.DbName;
+
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.persistence.Entity;
@@ -16,7 +18,10 @@ import java.util.TreeSet;
 import static io.ebean.querybean.generator.Constants.AT_GENERATED;
 import static io.ebean.querybean.generator.Constants.AT_TYPEQUERYBEAN;
 import static io.ebean.querybean.generator.Constants.DATABASE;
+import static io.ebean.querybean.generator.Constants.DB;
 import static io.ebean.querybean.generator.Constants.GENERATED;
+import static io.ebean.querybean.generator.Constants.TQASSOCBEAN;
+import static io.ebean.querybean.generator.Constants.TQPROPERTY;
 import static io.ebean.querybean.generator.Constants.TQROOTBEAN;
 import static io.ebean.querybean.generator.Constants.TYPEQUERYBEAN;
 
@@ -35,6 +40,7 @@ class SimpleQueryBeanWriter {
 
   private final ProcessingContext processingContext;
 
+  private final String dbName;
   private final String beanFullName;
   private boolean writingAssocBean;
 
@@ -51,8 +57,10 @@ class SimpleQueryBeanWriter {
     this.element = element;
     this.processingContext = processingContext;
 
+    final DbName name = processingContext.findAnnotation(element, DbName.class);
+    this.dbName = (name == null) ? null : name.value();
     this.beanFullName = element.getQualifiedName().toString();
-    this.destPackage = derivePackage(beanFullName)+".query";
+    this.destPackage = derivePackage(beanFullName) + ".query";
     this.shortName = deriveShortName(beanFullName);
   }
 
@@ -65,6 +73,9 @@ class SimpleQueryBeanWriter {
     importTypes.add(TQROOTBEAN);
     importTypes.add(TYPEQUERYBEAN);
     importTypes.add(DATABASE);
+    if (dbName != null) {
+      importTypes.add(DB);
+    }
 
     addClassProperties();
   }
@@ -122,9 +133,9 @@ class SimpleQueryBeanWriter {
 
     writingAssocBean = true;
     origDestPackage = destPackage;
-    destPackage = destPackage+".assoc";
+    destPackage = destPackage + ".assoc";
     origShortName = shortName;
-    shortName = "Assoc"+shortName;
+    shortName = "Assoc" + shortName;
 
     prepareAssocBeanImports();
 
@@ -145,18 +156,19 @@ class SimpleQueryBeanWriter {
    */
   private void prepareAssocBeanImports() {
 
-    importTypes.remove("io.ebean.typequery.TQRootBean");
-    importTypes.remove("io.ebean.Database");
-    importTypes.add("io.ebean.typequery.TQAssocBean");
+    importTypes.remove(DB);
+    importTypes.remove(TQROOTBEAN);
+    importTypes.remove(DATABASE);
+    importTypes.add(TQASSOCBEAN);
     if (isEntity()) {
-      importTypes.add("io.ebean.typequery.TQProperty");
+      importTypes.add(TQPROPERTY);
       importTypes.add(origDestPackage + ".Q" + origShortName);
     }
 
     // remove imports for the same package
     Iterator<String> importsIterator = importTypes.iterator();
     String checkImportStart = destPackage + ".QAssoc";
-    while (importsIterator.hasNext()){
+    while (importsIterator.hasNext()) {
       String importType = importsIterator.next();
       if (importType.startsWith(checkImportStart)) {
         importsIterator.remove();
@@ -191,11 +203,16 @@ class SimpleQueryBeanWriter {
     writer.append("  }").eol();
     writer.eol();
 
+    String name = (dbName == null) ? "default" : dbName;
     writer.append("  /**").eol();
-    writer.append("   * Construct using the default Database.").eol();
+    writer.append("   * Construct using the %s Database.", name).eol();
     writer.append("   */").eol();
     writer.append("  public Q%s() {", shortName).eol();
-    writer.append("    super(%s.class);", shortName).eol();
+    if (dbName == null) {
+      writer.append("    super(%s.class);", shortName).eol();
+    } else {
+      writer.append("    super(%s.class, DB.byName(\"%s\"));", shortName, dbName).eol();
+    }
     writer.append("  }").eol();
 
     writer.eol();
@@ -350,6 +367,6 @@ class SimpleQueryBeanWriter {
     if (pos == -1) {
       return name;
     }
-    return name.substring(pos+1);
+    return name.substring(pos + 1);
   }
 }
