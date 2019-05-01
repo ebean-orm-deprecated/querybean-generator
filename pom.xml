@@ -21,6 +21,18 @@
 
     <dependency>
       <groupId>io.ebean</groupId>
+      <artifactId>persistence-api</artifactId>
+      <version>2.2.2</version>
+    </dependency>
+
+    <dependency>
+      <groupId>io.ebean</groupId>
+      <artifactId>ebean-annotation</artifactId>
+      <version>4.10</version>
+    </dependency>
+
+    <dependency>
+      <groupId>io.ebean</groupId>
       <artifactId>ebean-querybean</artifactId>
       <version>11.38.1</version>
     </dependency>
