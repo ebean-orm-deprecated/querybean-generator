@@ -251,6 +251,10 @@ class SimpleQueryBeanWriter {
   private void writeAssocBeanConstructor() {
     writer.append("  public Q%s(String name, R root) {", shortName).eol();
     writer.append("    super(name, root);").eol();
+    writer.append("  }").eol().eol();
+
+    writer.append("  public Q%s(String name, R root, String prefix) {", shortName).eol();
+    writer.append("    super(name, root, prefix);").eol();
     writer.append("  }").eol();
   }
 
