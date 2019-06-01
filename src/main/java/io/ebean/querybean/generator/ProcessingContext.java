@@ -155,20 +155,12 @@ class ProcessingContext {
    * Escape the type (e.g. java.lang.String) from the TypeMirror toString().
    */
   private static String typeDef(TypeMirror typeMirror) {
-    return typeDef(typeMirror.toString());
-  }
-
-  /**
-   * Escape the type (e.g. java.lang.String) from the TypeMirror toString().
-   */
-  static String typeDef(String typeDesc) {
-
-    int pos = typeDesc.lastIndexOf(" :: ");
-    if (pos > -1) {
-      // (@javax.validation.constraints.Size(min=1, max=10) :: java.lang.String)
-      typeDesc = typeDesc.substring(pos + 4, typeDesc.length() - 1);
+    if (typeMirror.getKind() == TypeKind.DECLARED) {
+      DeclaredType declaredType = (DeclaredType) typeMirror;
+      return declaredType.asElement().toString();
+    } else {
+      return typeMirror.toString();
     }
-    return typeDesc;
   }
 
   PropertyType getPropertyType(VariableElement field) {
