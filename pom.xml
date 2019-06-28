@@ -4,7 +4,7 @@
 
   <groupId>io.ebean</groupId>
   <artifactId>querybean-generator</artifactId>
-  <version>11.39.4-SNAPSHOT</version>
+  <version>11.40.1-SNAPSHOT</version>
 
   <parent>
     <groupId>org.avaje</groupId>
@@ -34,14 +34,14 @@
     <dependency>
       <groupId>io.ebean</groupId>
       <artifactId>ebean-querybean</artifactId>
-      <version>11.39.1</version>
+      <version>11.40.1</version>
     </dependency>
 
     <!-- Look for DbJson annotations -->
     <dependency>
       <groupId>io.ebean</groupId>
       <artifactId>ebean</artifactId>
-      <version>11.39.1</version>
+      <version>11.40.1</version>
       <scope>provided</scope>
     </dependency>
 
