@@ -7,8 +7,6 @@ import java.util.Set;
  */
 class PropertyType {
 
-  static final String NEWLINE = SimpleQueryBeanWriter.NEWLINE;
-
   /**
    * The property type className or primitive short name.
    */
@@ -27,14 +25,6 @@ class PropertyType {
   }
 
   /**
-   * Return true if this is an association type.
-   */
-  boolean isAssociation() {
-    // overridden by PropertyTypeAssoc
-    return false;
-  }
-
-  /**
    * Return the type definition for this property.
    *
    * @param shortName The short name of the property type
@@ -44,7 +34,6 @@ class PropertyType {
     if (assoc) {
       //    PLong<R>
       return propertyType + "<R>";
-
     } else {
       //    PLong<QCustomer>
       return propertyType + "<Q" + shortName + ">";
@@ -55,7 +44,6 @@ class PropertyType {
    * Add any required imports for this property to the allImports set.
    */
   void addImports(Set<String> allImports) {
-
     allImports.add("io.ebean.typequery." + propertyType);
   }
 

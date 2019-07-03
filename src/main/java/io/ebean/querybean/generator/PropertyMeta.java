@@ -1,8 +1,5 @@
 package io.ebean.querybean.generator;
 
-import java.io.IOException;
-import java.io.Writer;
-
 /**
  * Meta data for a property.
  */
@@ -27,17 +24,9 @@ class PropertyMeta {
   }
 
   /**
-   * Return true if this is an associated bean property (OneToMany, ManyToOne etc).
-   */
-  public boolean isAssociation() {
-    return type.isAssociation();
-  }
-
-
-  /**
    * Return the type definition given the type short name and flag indicating if it is an associated bean type.
    */
-  String getTypeDefn(String shortName, boolean assoc) {
+  private String getTypeDefn(String shortName, boolean assoc) {
     return type.getTypeDefn(shortName, assoc);
   }
 

@@ -6,15 +6,13 @@ import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
-import javax.persistence.Embeddable;
-import javax.persistence.Entity;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
  * Process compiled entity beans and generates 'query beans' for them.
  */
-public class Processor extends AbstractProcessor {
+public class Processor extends AbstractProcessor implements Constants {
 
   private ProcessingContext processingContext;
 
@@ -31,8 +29,8 @@ public class Processor extends AbstractProcessor {
   public Set<String> getSupportedAnnotationTypes() {
 
     Set<String> annotations = new LinkedHashSet<>();
-    annotations.add(Entity.class.getCanonicalName());
-    annotations.add(Embeddable.class.getCanonicalName());
+    annotations.add(ENTITY);
+    annotations.add(EMBEDDABLE);
     return annotations;
   }
 
@@ -44,21 +42,17 @@ public class Processor extends AbstractProcessor {
   @Override
   public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
 
-    int entityCount = 0;
-    int embeddableCount = 0;
+    int count = 0;
 
-    for (Element element : roundEnv.getElementsAnnotatedWith(Entity.class)) {
-      generateQueryBeans(element);
-      entityCount++;
+    for (TypeElement annotation : annotations) {
+      for (Element element : roundEnv.getElementsAnnotatedWith(annotation)) {
+        generateQueryBeans(element);
+        count++;
+      }
     }
 
-    for (Element element : roundEnv.getElementsAnnotatedWith(Embeddable.class)) {
-      generateQueryBeans(element);
-      embeddableCount++;
-    }
-
-    if (entityCount > 0 || embeddableCount > 0) {
-      processingContext.logNote("Generated query beans for [" + entityCount + "] entities [" + embeddableCount + "] embeddable");
+    if (count > 0) {
+      processingContext.logNote("Generated " + count + " query beans");
     }
 
     return true;

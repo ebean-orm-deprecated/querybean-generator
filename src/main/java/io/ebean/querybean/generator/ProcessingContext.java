@@ -1,12 +1,10 @@
 package io.ebean.querybean.generator;
 
-import io.ebean.annotation.DbArray;
-import io.ebean.annotation.DbJson;
-import io.ebean.annotation.DbJsonB;
-
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.SourceVersion;
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Modifier;
@@ -18,24 +16,17 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
-import javax.persistence.Embeddable;
-import javax.persistence.Entity;
-import javax.persistence.Inheritance;
-import javax.persistence.MappedSuperclass;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 import java.io.IOException;
-import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import static io.ebean.querybean.generator.Constants.GENERATED;
-
 /**
  * Context for the source generation.
  */
-class ProcessingContext {
+class ProcessingContext implements Constants {
 
   private final Types typeUtils;
 
@@ -45,7 +36,7 @@ class ProcessingContext {
 
   private final Elements elementUtils;
 
-  private final boolean generatedAvailable;
+  private final String generatedAnnotation;
 
   private final PropertyTypeMap propertyTypeMap = new PropertyTypeMap();
 
@@ -54,7 +45,16 @@ class ProcessingContext {
     this.filer = processingEnv.getFiler();
     this.messager = processingEnv.getMessager();
     this.elementUtils = processingEnv.getElementUtils();
-    this.generatedAvailable = isTypeAvailable(GENERATED);
+
+    boolean jdk8 = processingEnv.getSourceVersion().compareTo(SourceVersion.RELEASE_8) <= 0;
+    this.generatedAnnotation = generatedAnnotation(jdk8);
+  }
+
+  private String generatedAnnotation(boolean jdk8) {
+    if (jdk8) {
+      return isTypeAvailable(GENERATED_8) ? GENERATED_8 : null;
+    }
+    return isTypeAvailable(GENERATED_9) ? GENERATED_9 : null;
   }
 
   private boolean isTypeAvailable(String canonicalName) {
@@ -92,23 +92,6 @@ class ProcessingContext {
   }
 
   /**
-   * Find the annotation searching the inheritance hierarchy.
-   */
-  <A extends Annotation> A findAnnotation(TypeElement element, Class<A> anno) {
-
-    final A annotation = element.getAnnotation(anno);
-    if (annotation != null) {
-      return annotation;
-    }
-    final TypeMirror typeMirror = element.getSuperclass();
-    if (typeMirror.getKind() == TypeKind.NONE) {
-      return null;
-    }
-    final TypeElement element1 = (TypeElement)typeUtils.asElement(typeMirror);
-    return findAnnotation(element1, anno);
-  }
-
-  /**
    * Not interested in static, transient or Ebean internal fields.
    */
   private boolean ignoreField(VariableElement field) {
@@ -125,30 +108,49 @@ class ProcessingContext {
     return (modifiers.contains(Modifier.STATIC) || modifiers.contains(Modifier.TRANSIENT));
   }
 
+  private static boolean hasAnnotations(Element element, String... annotations) {
+    return getAnnotation(element, annotations) != null;
+  }
+
+  private static AnnotationMirror getAnnotation(Element element, String... annotations) {
+    if (element == null) {
+      return null;
+    }
+    for (AnnotationMirror annotationMirror : element.getAnnotationMirrors()) {
+      final String name = annotationMirror.getAnnotationType().asElement().toString();
+      for (String annotation : annotations) {
+        if (annotation.equals(name)) {
+          return annotationMirror;
+        }
+      }
+    }
+    return null;
+  }
+
   private boolean isMappedSuperOrInheritance(Element mappedSuper) {
-    return mappedSuper.getAnnotation(MappedSuperclass.class) != null
-      || mappedSuper.getAnnotation(Inheritance.class) != null;
+    return hasAnnotations(mappedSuper, MAPPED_SUPERCLASS, INHERITANCE);
   }
 
   private boolean isEntityOrEmbedded(Element mappedSuper) {
-    return mappedSuper != null
-      && (mappedSuper.getAnnotation(Entity.class) != null
-      || mappedSuper.getAnnotation(Embeddable.class) != null);
+    return hasAnnotations(mappedSuper, ENTITY, EMBEDDABLE);
+  }
+
+  boolean isEntity(Element element) {
+    return hasAnnotations(element, ENTITY);
   }
 
   /**
    * Return true if it is a DbJson field.
    */
   private static boolean dbJsonField(Element field) {
-    return (field.getAnnotation(DbJson.class) != null
-      || field.getAnnotation(DbJsonB.class) != null);
+    return hasAnnotations(field, DBJSON, DBJSONB);
   }
 
   /**
    * Return true if it is a DbArray field.
    */
   private static boolean dbArrayField(Element field) {
-    return (field.getAnnotation(DbArray.class) != null);
+    return hasAnnotations(field, DBARRAY);
   }
 
   /**
@@ -229,18 +231,18 @@ class ProcessingContext {
 
     String[] split = Split.split(fullName);
     String propertyName = "QAssoc" + split[1];
-    String packageName = packageAppend(split[0], "query.assoc");
+    String packageName = packageAppend(split[0]);
     return new PropertyTypeAssoc(propertyName, packageName);
   }
 
   /**
    * Prepend the package to the suffix taking null into account.
    */
-  private String packageAppend(String origPackage, String suffix) {
+  private String packageAppend(String origPackage) {
     if (origPackage == null) {
-      return suffix;
+      return "query.assoc";
     } else {
-      return origPackage + "." + suffix;
+      return origPackage + "." + "query.assoc";
     }
   }
 
@@ -265,10 +267,11 @@ class ProcessingContext {
     messager.printMessage(Diagnostic.Kind.NOTE, String.format(msg, args));
   }
 
-  /**
-   * Return true if javax.annotation.Generated is available in the claspath.
-   */
   boolean isGeneratedAvailable() {
-    return generatedAvailable;
+    return generatedAnnotation != null;
+  }
+
+  String getGeneratedAnnotation() {
+    return generatedAnnotation;
   }
 }

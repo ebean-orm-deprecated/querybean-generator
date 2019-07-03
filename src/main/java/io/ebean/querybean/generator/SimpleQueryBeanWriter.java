@@ -1,11 +1,8 @@
 package io.ebean.querybean.generator;
 
 
-import io.ebean.annotation.DbName;
-
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
-import javax.persistence.Entity;
 import javax.tools.JavaFileObject;
 import java.io.IOException;
 import java.io.Writer;
@@ -19,7 +16,6 @@ import static io.ebean.querybean.generator.Constants.AT_GENERATED;
 import static io.ebean.querybean.generator.Constants.AT_TYPEQUERYBEAN;
 import static io.ebean.querybean.generator.Constants.DATABASE;
 import static io.ebean.querybean.generator.Constants.DB;
-import static io.ebean.querybean.generator.Constants.GENERATED;
 import static io.ebean.querybean.generator.Constants.TQASSOCBEAN;
 import static io.ebean.querybean.generator.Constants.TQPROPERTY;
 import static io.ebean.querybean.generator.Constants.TQROOTBEAN;
@@ -29,8 +25,6 @@ import static io.ebean.querybean.generator.Constants.TYPEQUERYBEAN;
  * A simple implementation that generates and writes query beans.
  */
 class SimpleQueryBeanWriter {
-
-  static final String NEWLINE = "\n";
 
   private final Set<String> importTypes = new TreeSet<>();
 
@@ -42,6 +36,7 @@ class SimpleQueryBeanWriter {
 
   private final String dbName;
   private final String beanFullName;
+  private final boolean isEntity;
   private boolean writingAssocBean;
 
   private String destPackage;
@@ -49,34 +44,38 @@ class SimpleQueryBeanWriter {
 
   private String shortName;
   private String origShortName;
-
   private Append writer;
-
 
   SimpleQueryBeanWriter(TypeElement element, ProcessingContext processingContext) {
     this.element = element;
     this.processingContext = processingContext;
-
-    final DbName name = processingContext.findAnnotation(element, DbName.class);
-    this.dbName = (name == null) ? null : name.value();
     this.beanFullName = element.getQualifiedName().toString();
     this.destPackage = derivePackage(beanFullName) + ".query";
     this.shortName = deriveShortName(beanFullName);
+    this.isEntity = processingContext.isEntity(element);
+    this.dbName = findDbName();
+  }
+
+  private String findDbName() {
+    return FindDbName.value(element);
+  }
+
+  private boolean isEntity() {
+    return isEntity;
   }
 
   private void gatherPropertyDetails() {
-
-    importTypes.add(beanFullName);
-    if (processingContext.isGeneratedAvailable()) {
-      importTypes.add(GENERATED);
+    final String generated = processingContext.getGeneratedAnnotation();
+    if (generated != null) {
+      importTypes.add(generated);
     }
+    importTypes.add(beanFullName);
     importTypes.add(TQROOTBEAN);
     importTypes.add(TYPEQUERYBEAN);
     importTypes.add(DATABASE);
     if (dbName != null) {
       importTypes.add(DB);
     }
-
     addClassProperties();
   }
 
@@ -87,10 +86,7 @@ class SimpleQueryBeanWriter {
    * </p>
    */
   private void addClassProperties() {
-
-    List<VariableElement> fields = processingContext.allFields(element);
-
-    for (VariableElement field : fields) {
+    for (VariableElement field : processingContext.allFields(element)) {
       PropertyType type = processingContext.getPropertyType(field);
       if (type != null) {
         type.addImports(importTypes);
@@ -122,15 +118,10 @@ class SimpleQueryBeanWriter {
     }
   }
 
-  private boolean isEntity() {
-    return element.getAnnotation(Entity.class) != null;
-  }
-
   /**
    * Write the type query assoc bean.
    */
   void writeAssocBean() throws IOException {
-
     writingAssocBean = true;
     origDestPackage = destPackage;
     destPackage = destPackage + ".assoc";
@@ -155,7 +146,6 @@ class SimpleQueryBeanWriter {
    * Prepare the imports for writing assoc bean.
    */
   private void prepareAssocBeanImports() {
-
     importTypes.remove(DB);
     importTypes.remove(TQROOTBEAN);
     importTypes.remove(DATABASE);
@@ -179,8 +169,7 @@ class SimpleQueryBeanWriter {
   /**
    * Write constructors.
    */
-  private void writeConstructors() throws IOException {
-
+  private void writeConstructors() {
     if (writingAssocBean) {
       writeAssocBeanFetch();
       writeAssocBeanConstructor();
@@ -192,8 +181,7 @@ class SimpleQueryBeanWriter {
   /**
    * Write the constructors for 'root' type query bean.
    */
-  private void writeRootBeanConstructor() throws IOException {
-
+  private void writeRootBeanConstructor() {
     writer.eol();
     writer.append("  /**").eol();
     writer.append("   * Construct with a given Database.").eol();
@@ -225,7 +213,6 @@ class SimpleQueryBeanWriter {
   }
 
   private void writeAssocBeanFetch() {
-
     if (isEntity()) {
       writeAssocBeanFetch("", "Eagerly fetch this association loading the specified properties.");
       writeAssocBeanFetch("Query", "Eagerly fetch this association using a 'query join' loading the specified properties.");
@@ -234,7 +221,6 @@ class SimpleQueryBeanWriter {
   }
 
   private void writeAssocBeanFetch(String fetchType, String comment) {
-
     writer.append("  /**").eol();
     writer.append("   * ").append(comment).eol();
     writer.append("   */").eol();
@@ -261,8 +247,7 @@ class SimpleQueryBeanWriter {
   /**
    * Write all the fields.
    */
-  private void writeFields() throws IOException {
-
+  private void writeFields() {
     for (PropertyMeta property : properties) {
       property.writeFieldDefn(writer, shortName, writingAssocBean);
       writer.eol();
@@ -274,7 +259,6 @@ class SimpleQueryBeanWriter {
    * Write the class definition.
    */
   private void writeClass() {
-
     if (writingAssocBean) {
       writer.append("/**").eol();
       writer.append(" * Association query bean for %s.", shortName).eol();
@@ -303,7 +287,7 @@ class SimpleQueryBeanWriter {
     writer.eol();
   }
 
-  private void writeAlias() throws IOException {
+  private void writeAlias()  {
     if (!writingAssocBean) {
       writer.append("  private static final Q%s _alias = new Q%1$s(true);", shortName).eol().eol();
 
@@ -318,8 +302,7 @@ class SimpleQueryBeanWriter {
     }
   }
 
-  private void writeStaticAliasClass() throws IOException {
-
+  private void writeStaticAliasClass() {
     writer.eol();
     writer.append("  /**").eol();
     writer.append("   * Provides static properties to use in <em> select() and fetch() </em>").eol();

@@ -24,14 +24,6 @@ class PropertyTypeAssoc extends PropertyType {
   }
 
   /**
-   * Returns true as associated bean type.
-   */
-  @Override
-  boolean isAssociation() {
-    return true;
-  }
-
-  /**
    * All required imports to the allImports set.
    */
   @Override
