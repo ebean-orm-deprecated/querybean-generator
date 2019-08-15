@@ -16,6 +16,8 @@ import static io.ebean.querybean.generator.Constants.AT_GENERATED;
 import static io.ebean.querybean.generator.Constants.AT_TYPEQUERYBEAN;
 import static io.ebean.querybean.generator.Constants.DATABASE;
 import static io.ebean.querybean.generator.Constants.DB;
+import static io.ebean.querybean.generator.Constants.FETCHGROUP;
+import static io.ebean.querybean.generator.Constants.QUERY;
 import static io.ebean.querybean.generator.Constants.TQASSOCBEAN;
 import static io.ebean.querybean.generator.Constants.TQPROPERTY;
 import static io.ebean.querybean.generator.Constants.TQROOTBEAN;
@@ -73,6 +75,8 @@ class SimpleQueryBeanWriter {
     importTypes.add(TQROOTBEAN);
     importTypes.add(TYPEQUERYBEAN);
     importTypes.add(DATABASE);
+    importTypes.add(FETCHGROUP);
+    importTypes.add(QUERY);
     if (dbName != null) {
       importTypes.add(DB);
     }
@@ -149,6 +153,8 @@ class SimpleQueryBeanWriter {
     importTypes.remove(DB);
     importTypes.remove(TQROOTBEAN);
     importTypes.remove(DATABASE);
+    importTypes.remove(FETCHGROUP);
+    importTypes.remove(QUERY);
     importTypes.add(TQASSOCBEAN);
     if (isEntity()) {
       importTypes.add(TQPROPERTY);
@@ -182,6 +188,16 @@ class SimpleQueryBeanWriter {
    * Write the constructors for 'root' type query bean.
    */
   private void writeRootBeanConstructor() {
+
+    writer.eol();
+    writer.append("  /**").eol();
+    writer.append("   * Return a query bean used to build a FetchGroup.").eol();
+    writer.append("   */").eol();
+    writer.append("  public static Q%s forFetchGroup() {", shortName).eol();
+    writer.append("    return new Q%s(FetchGroup.queryFor(%s.class));", shortName, shortName).eol();
+    writer.append("  }").eol();
+    writer.eol();
+
     writer.eol();
     writer.append("  /**").eol();
     writer.append("   * Construct with a given Database.").eol();
@@ -209,6 +225,14 @@ class SimpleQueryBeanWriter {
     writer.append("   */").eol();
     writer.append("  private Q%s(boolean dummy) {", shortName).eol();
     writer.append("    super(dummy);").eol();
+    writer.append("  }").eol();
+
+    writer.eol();
+    writer.append("  /**").eol();
+    writer.append("   * Private constructor for FetchGroup building.").eol();
+    writer.append("   */").eol();
+    writer.append("  private Q%s(Query<%s> fetchGroupQuery) {", shortName, shortName).eol();
+    writer.append("    super(fetchGroupQuery);").eol();
     writer.append("  }").eol();
   }
 

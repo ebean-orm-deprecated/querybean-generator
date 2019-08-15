@@ -25,5 +25,7 @@ interface Constants {
   String TYPEQUERYBEAN = "io.ebean.typequery.TypeQueryBean";
   String DATABASE = "io.ebean.Database";
   String DB = "io.ebean.DB";
+  String FETCHGROUP = "io.ebean.FetchGroup";
+  String QUERY = "io.ebean.Query";
 
 }
