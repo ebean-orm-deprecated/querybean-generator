@@ -240,6 +240,7 @@ class SimpleQueryBeanWriter {
     if (isEntity()) {
       writeAssocBeanFetch("", "Eagerly fetch this association loading the specified properties.");
       writeAssocBeanFetch("Query", "Eagerly fetch this association using a 'query join' loading the specified properties.");
+      writeAssocBeanFetch("Cache", "Eagerly fetch this association using L2 cache.");
       writeAssocBeanFetch("Lazy", "Use lazy loading for this association loading the specified properties.");
     }
   }
