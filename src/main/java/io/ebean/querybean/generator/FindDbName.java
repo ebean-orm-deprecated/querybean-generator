@@ -4,6 +4,9 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Types;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -15,13 +18,18 @@ class FindDbName {
   /**
    * Return the value of the DbName annotation or null if it isn't found on the element.
    */
-  static String value(TypeElement element) {
+  static String value(TypeElement element, Types typeUtils) {
 
     AnnotationMirror mirror = findDbNameMirror(element);
     if (mirror != null) {
       return readDbNameValue(mirror);
     }
-    return null;
+    final TypeMirror typeMirror = element.getSuperclass();
+    if (typeMirror.getKind() == TypeKind.NONE) {
+      return null;
+    }
+    final TypeElement element1 = (TypeElement)typeUtils.asElement(typeMirror);
+    return value(element1, typeUtils);
   }
 
   private static String readDbNameValue(AnnotationMirror mirror) {

@@ -140,6 +140,13 @@ class ProcessingContext implements Constants {
   }
 
   /**
+   * Find the DbName annotation and return name if found.
+   */
+  String findDbName(TypeElement element) {
+    return FindDbName.value(element, typeUtils);
+  }
+
+  /**
    * Return true if it is a DbJson field.
    */
   private static boolean dbJsonField(Element field) {

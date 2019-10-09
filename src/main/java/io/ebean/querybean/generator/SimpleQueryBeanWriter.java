@@ -59,7 +59,7 @@ class SimpleQueryBeanWriter {
   }
 
   private String findDbName() {
-    return FindDbName.value(element);
+    return processingContext.findDbName(element);
   }
 
   private boolean isEntity() {
