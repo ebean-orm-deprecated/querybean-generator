@@ -62,7 +62,7 @@ class PropertyTypeMap {
     map.put(URL.class.getName(), new PropertyType("PUrl"));
     map.put(UUID.class.getName(), new PropertyType("PUuid"));
     map.put("io.ebean.types.Inet", new PropertyType("PInet"));
-    map.put("io.ebean.types.Cdir", new PropertyType("PCdir"));
+    map.put("io.ebean.types.Cidr", new PropertyType("PCidr"));
     addJava8Types();
     addJodaTypes();
   }
