@@ -31,6 +31,7 @@ public class Processor extends AbstractProcessor implements Constants {
     Set<String> annotations = new LinkedHashSet<>();
     annotations.add(ENTITY);
     annotations.add(EMBEDDABLE);
+    annotations.add(MODULEINFO);
     return annotations;
   }
 
@@ -42,29 +43,42 @@ public class Processor extends AbstractProcessor implements Constants {
   @Override
   public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
 
+    processingContext.readModuleInfo();
     int count = 0;
-
     for (TypeElement annotation : annotations) {
       for (Element element : roundEnv.getElementsAnnotatedWith(annotation)) {
         generateQueryBeans(element);
         count++;
       }
     }
+    final int loaded = processingContext.complete();
+    if (roundEnv.processingOver()) {
+      writeModuleInfoBean();
+    }
 
     if (count > 0) {
-      processingContext.logNote("Generated " + count + " query beans");
+      String msg = "Ebean APT generated %s query beans, loaded %s others - META-INF/ebean-info.mf entity-packages: %s";
+      processingContext.logNote(msg, count, loaded, processingContext.getAllEntityPackages());
     }
 
     return true;
   }
 
+  private void writeModuleInfoBean() {
+    try {
+      SimpleModuleInfoWriter writer = new SimpleModuleInfoWriter(processingContext);
+      writer.write();
+    } catch (Throwable e) {
+      processingContext.logError(null, "Failed to write ModuleInfoLoader " + e.getMessage());
+    }
+  }
+
   private void generateQueryBeans(Element element) {
     try {
-      SimpleQueryBeanWriter beanWriter = new SimpleQueryBeanWriter((TypeElement)element, processingContext);
+      SimpleQueryBeanWriter beanWriter = new SimpleQueryBeanWriter((TypeElement) element, processingContext);
       beanWriter.writeRootBean();
       beanWriter.writeAssocBean();
-
-    } catch (Exception e) { // catch also runtime-exceptions here
+    } catch (Throwable e) {
       processingContext.logError(element, "Error generating query beans: " + e);
     }
   }

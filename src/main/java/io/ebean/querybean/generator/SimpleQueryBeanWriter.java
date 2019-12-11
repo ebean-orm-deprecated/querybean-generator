@@ -107,6 +107,7 @@ class SimpleQueryBeanWriter {
     gatherPropertyDetails();
 
     if (isEntity()) {
+      processingContext.addEntity(beanFullName, dbName);
       writer = new Append(createFileWriter());
 
       writePackage();
