@@ -6,8 +6,10 @@ import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
@@ -271,11 +273,39 @@ class ProcessingContext implements Constants {
           Element argElement = typeUtils.asElement(argType);
           if (isEntityOrEmbedded(argElement)) {
             return createPropertyTypeAssoc(typeDef(argElement.asType()));
+          } else {
+            // look for targetEntity annotation attribute
+            final String targetEntity = readTargetEntity(field);
+            if (targetEntity != null) {
+              final TypeElement element = elementUtils.getTypeElement(targetEntity);
+              if (isEntityOrEmbedded(element)) {
+                return createPropertyTypeAssoc(typeDef(element.asType()));
+              }
+            }
           }
         }
       }
     }
 
+    return null;
+  }
+
+  private String readTargetEntity(Element declaredType) {
+    for (AnnotationMirror annotation : declaredType.getAnnotationMirrors()) {
+      final Object targetEntity = readTargetEntityFromAnnotation(annotation);
+      if (targetEntity != null) {
+        return targetEntity.toString();
+      }
+    }
+    return null;
+  }
+
+  private static Object readTargetEntityFromAnnotation(AnnotationMirror mirror) {
+    for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> entry : mirror.getElementValues().entrySet()) {
+      if ("targetEntity".equals(entry.getKey().getSimpleName().toString())) {
+        return entry.getValue().getValue();
+      }
+    }
     return null;
   }
 
