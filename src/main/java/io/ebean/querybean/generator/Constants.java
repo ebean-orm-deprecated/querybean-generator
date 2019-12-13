@@ -28,4 +28,8 @@ interface Constants {
   String FETCHGROUP = "io.ebean.FetchGroup";
   String QUERY = "io.ebean.Query";
 
+  String MODULEINFO = "io.ebean.config.ModuleInfo";
+  String METAINF_MANIFEST = "META-INF/ebean-info.mf";
+  String METAINF_SERVICES_MODULELOADER = "META-INF/services/io.ebean.config.ModuleInfoLoader";
+
 }

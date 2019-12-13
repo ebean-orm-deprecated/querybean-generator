@@ -1,6 +1,7 @@
 package io.ebean.querybean.generator;
 
 import javax.annotation.processing.Filer;
+import javax.annotation.processing.FilerException;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.SourceVersion;
@@ -17,30 +18,76 @@ import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
+import javax.tools.FileObject;
 import javax.tools.JavaFileObject;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.LineNumberReader;
+import java.io.Reader;
+import java.nio.file.NoSuchFileException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
+
+import static javax.tools.StandardLocation.CLASS_OUTPUT;
 
 /**
  * Context for the source generation.
  */
 class ProcessingContext implements Constants {
 
+  private final ProcessingEnvironment processingEnv;
   private final Types typeUtils;
-
   private final Filer filer;
-
   private final Messager messager;
-
   private final Elements elementUtils;
-
   private final String generatedAnnotation;
 
   private final PropertyTypeMap propertyTypeMap = new PropertyTypeMap();
 
+  private final ReadModuleInfo readModuleInfo;
+
+  /**
+   * All entity packages regardless of DB (for META-INF/ebean-info.mf).
+   */
+  private final Set<String> allEntityPackages = new TreeSet<>();
+
+  /**
+   * The DB name prefixed entities.
+   */
+  private final Set<String> prefixEntities = new TreeSet<>();
+
+  /**
+   * Entity classes for the default database.
+   */
+  private final Set<String> dbEntities = new TreeSet<>();
+
+  /**
+   * Entity classes for non default databases.
+   */
+  private final Map<String, Set<String>> otherDbEntities = new TreeMap<>();
+
+  /**
+   * All loaded entities regardless of db (to detect ones we add back from loadedPrefixEntities).
+   */
+  private final Set<String> loaded = new HashSet<>();
+
+  /**
+   * For partial compile the previous list of prefixed entity classes.
+   */
+  private List<String> loadedPrefixEntities;
+
+  /**
+   * The package for the generated ModuleInfoLoader.
+   */
+  private String factoryPackage;
+
   ProcessingContext(ProcessingEnvironment processingEnv) {
+    this.processingEnv = processingEnv;
     this.typeUtils = processingEnv.getTypeUtils();
     this.filer = processingEnv.getFiler();
     this.messager = processingEnv.getMessager();
@@ -48,6 +95,7 @@ class ProcessingContext implements Constants {
 
     boolean jdk8 = processingEnv.getSourceVersion().compareTo(SourceVersion.RELEASE_8) <= 0;
     this.generatedAnnotation = generatedAnnotation(jdk8);
+    this.readModuleInfo = new ReadModuleInfo(this);
   }
 
   private String generatedAnnotation(boolean jdk8) {
@@ -260,16 +308,10 @@ class ProcessingContext implements Constants {
     return filer.createSourceFile(factoryClassName, originatingElement);
   }
 
-  /**
-   * Log an error message.
-   */
   void logError(Element e, String msg, Object... args) {
     messager.printMessage(Diagnostic.Kind.ERROR, String.format(msg, args), e);
   }
 
-  /**
-   * Log a info message.
-   */
   void logNote(String msg, Object... args) {
     messager.printMessage(Diagnostic.Kind.NOTE, String.format(msg, args));
   }
@@ -280,5 +322,138 @@ class ProcessingContext implements Constants {
 
   String getGeneratedAnnotation() {
     return generatedAnnotation;
+  }
+
+  void readModuleInfo() {
+    String factory = loadMetaInfServices();
+    if (factory != null) {
+      TypeElement factoryType = elementUtils.getTypeElement(factory);
+      if (factoryType != null) {
+        // previous prefixed entities to add back for partial compile
+        loadedPrefixEntities = readModuleInfo.read(factoryType);
+      }
+    }
+  }
+
+  /**
+   * Register an entity with optional dbName.
+   */
+  void addEntity(String beanFullName, String dbName) {
+
+    loaded.add(beanFullName);
+    final String pkg = packageOf(beanFullName);
+    if (pkg != null) {
+      allEntityPackages.add(pkg);
+    }
+    if (dbName != null) {
+      prefixEntities.add(dbName + ":" + beanFullName);
+      otherDbEntities.computeIfAbsent(dbName, s -> new TreeSet<>()).add(beanFullName);
+    } else {
+      prefixEntities.add(beanFullName);
+      dbEntities.add(beanFullName);
+      updateFactoryPackage(pkg);
+    }
+  }
+
+  /**
+   * Add back entity classes for partial compile.
+   */
+  int complete() {
+
+    int added = 0;
+    if (loadedPrefixEntities != null) {
+      for (String oldPrefixEntity : loadedPrefixEntities) {
+        // maybe split as dbName:entityClass
+        final String[] prefixEntityClass = oldPrefixEntity.split(":");
+
+        String dbName = null;
+        String entityClass;
+        if (prefixEntityClass.length > 1) {
+          dbName = prefixEntityClass[0];
+          entityClass = prefixEntityClass[1];
+        } else {
+          entityClass = prefixEntityClass[0];
+        }
+        if (!loaded.contains(entityClass)) {
+          addEntity(entityClass, dbName);
+          added++;
+        }
+      }
+    }
+    return added;
+  }
+
+  private String packageOf(String beanFullName) {
+    final int pos = beanFullName.lastIndexOf('.');
+    if (pos > -1) {
+      return beanFullName.substring(0, pos);
+    }
+    return null;
+  }
+
+  private void updateFactoryPackage(String pkg) {
+    if (pkg != null && (factoryPackage == null || factoryPackage.length() > pkg.length())) {
+      factoryPackage = pkg;
+    }
+  }
+
+  FileObject createMetaInfServicesWriter() throws IOException {
+    return createMetaInfWriter(METAINF_SERVICES_MODULELOADER);
+  }
+
+  FileObject createManifestWriter() throws IOException {
+    return createMetaInfWriter(Constants.METAINF_MANIFEST);
+  }
+
+  FileObject createMetaInfWriter(String target) throws IOException {
+    return filer.createResource(CLASS_OUTPUT, "", target);
+  }
+
+  Set<String> getPrefixEntities() {
+    return prefixEntities;
+  }
+
+  Set<String> getDbEntities() {
+    return dbEntities;
+  }
+
+  Map<String, Set<String>> getOtherDbEntities() {
+    return otherDbEntities;
+  }
+
+
+  Set<String> getAllEntityPackages() {
+    return allEntityPackages;
+  }
+
+  String getFactoryPackage() {
+    return factoryPackage != null ? factoryPackage : "unknown";
+  }
+
+  /**
+   * Return the class name of the generated ModuleInfoLoader
+   * (such that we can read the current meta data for partial compile).
+   */
+  String loadMetaInfServices() {
+    try {
+      FileObject fileObject = processingEnv.getFiler().getResource(CLASS_OUTPUT, "", METAINF_SERVICES_MODULELOADER);
+      if (fileObject != null) {
+        Reader reader = fileObject.openReader(true);
+        LineNumberReader lineReader = new LineNumberReader(reader);
+        String line = lineReader.readLine();
+        if (line != null) {
+          return line.trim();
+        }
+      }
+
+    } catch (FileNotFoundException | NoSuchFileException e) {
+      // ignore - no services file yet
+    } catch (FilerException e) {
+      logNote(null, "FilerException reading services file: " + e.getMessage());
+    } catch (Exception e) {
+      e.printStackTrace();
+      logError(null, "Error reading services file: " + e.getMessage());
+    }
+    return null;
   }
 }
