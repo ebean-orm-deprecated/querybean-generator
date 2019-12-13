@@ -63,6 +63,7 @@ class SimpleModuleInfoWriter {
         FileObject jfo = processingContext.createManifestWriter();
         if (jfo != null) {
           Writer writer = jfo.openWriter();
+          writer.write("Generated-By: Ebean query bean generator\n");
           writer.write(manifestEntityPackages(allEntityPackages));
           writer.write("\n");
           writer.close();
