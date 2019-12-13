@@ -250,43 +250,47 @@ class ProcessingContext implements Constants {
     }
 
     Element fieldType = typeUtils.asElement(typeMirror);
+    if (fieldType == null) {
+      return null;
+    }
 
-    if (fieldType != null) {
-      // workaround for https://bugs.eclipse.org/bugs/show_bug.cgi?id=544288
-      fieldType = elementUtils.getTypeElement(fieldType.toString());
+    // workaround for https://bugs.eclipse.org/bugs/show_bug.cgi?id=544288
+    fieldType = elementUtils.getTypeElement(fieldType.toString());
 
-      if (fieldType.getKind() == ElementKind.ENUM) {
-        String fullType = typeDef(typeMirror);
-        return new PropertyTypeEnum(fullType, Split.shortName(fullType));
-      }
+    if (fieldType.getKind() == ElementKind.ENUM) {
+      String fullType = typeDef(typeMirror);
+      return new PropertyTypeEnum(fullType, Split.shortName(fullType));
+    }
 
-      if (isEntityOrEmbedded(fieldType)) {
-        //  public QAssocContact<QCustomer> contacts;
-        return createPropertyTypeAssoc(typeDef(typeMirror));
-      }
+    if (isEntityOrEmbedded(fieldType)) {
+      //  public QAssocContact<QCustomer> contacts;
+      return createPropertyTypeAssoc(typeDef(typeMirror));
+    }
 
-      if (typeMirror.getKind() == TypeKind.DECLARED) {
-        DeclaredType declaredType = (DeclaredType) typeMirror;
-        List<? extends TypeMirror> typeArguments = declaredType.getTypeArguments();
-        if (typeArguments.size() == 1) {
-          TypeMirror argType = typeArguments.get(0);
-          Element argElement = typeUtils.asElement(argType);
-          if (isEntityOrEmbedded(argElement)) {
-            return createPropertyTypeAssoc(typeDef(argElement.asType()));
-          } else {
-            // look for targetEntity annotation attribute
-            final String targetEntity = readTargetEntity(field);
-            if (targetEntity != null) {
-              final TypeElement element = elementUtils.getTypeElement(targetEntity);
-              if (isEntityOrEmbedded(element)) {
-                return createPropertyTypeAssoc(typeDef(element.asType()));
-              }
-            }
+    if (typeMirror.getKind() == TypeKind.DECLARED) {
+      return createManyTypeAssoc(field, (DeclaredType) typeMirror);
+    }
+
+    return null;
+  }
+
+  private PropertyType createManyTypeAssoc(VariableElement field, DeclaredType declaredType) {
+    List<? extends TypeMirror> typeArguments = declaredType.getTypeArguments();
+    if (typeArguments.size() == 1) {
+      Element argElement = typeUtils.asElement(typeArguments.get(0));
+      if (isEntityOrEmbedded(argElement)) {
+        return createPropertyTypeAssoc(typeDef(argElement.asType()));
+      } else {
+        // look for targetEntity annotation attribute
+        final String targetEntity = readTargetEntity(field);
+        if (targetEntity != null) {
+          final TypeElement element = elementUtils.getTypeElement(targetEntity);
+          if (isEntityOrEmbedded(element)) {
+            return createPropertyTypeAssoc(typeDef(element.asType()));
           }
         }
       }
     }
-
     return null;
   }
 
