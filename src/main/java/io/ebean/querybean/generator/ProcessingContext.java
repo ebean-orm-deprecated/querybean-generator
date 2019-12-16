@@ -54,7 +54,7 @@ class ProcessingContext implements Constants {
   private final ReadModuleInfo readModuleInfo;
 
   /**
-   * All entity packages regardless of DB (for META-INF/ebean-info.mf).
+   * All entity packages regardless of DB (for META-INF/ebean-generated-info.mf).
    */
   private final Set<String> allEntityPackages = new TreeSet<>();
 

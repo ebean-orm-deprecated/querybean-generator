@@ -57,7 +57,7 @@ public class Processor extends AbstractProcessor implements Constants {
     }
 
     if (count > 0) {
-      String msg = "Ebean APT generated %s query beans, loaded %s others - META-INF/ebean-info.mf entity-packages: %s";
+      String msg = "Ebean APT generated %s query beans, loaded %s others - META-INF/ebean-generated-info.mf entity-packages: %s";
       processingContext.logNote(msg, count, loaded, processingContext.getAllEntityPackages());
     }
 
