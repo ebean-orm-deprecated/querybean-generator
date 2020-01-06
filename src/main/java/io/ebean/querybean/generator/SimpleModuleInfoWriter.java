@@ -41,7 +41,6 @@ class SimpleModuleInfoWriter {
   }
 
   private void writeServicesFile() {
-
     try {
       FileObject jfo = processingContext.createMetaInfServicesWriter();
       if (jfo != null) {

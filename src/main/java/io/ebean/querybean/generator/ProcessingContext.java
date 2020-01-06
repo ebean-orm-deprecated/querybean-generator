@@ -436,7 +436,7 @@ class ProcessingContext implements Constants {
   }
 
   FileObject createManifestWriter() throws IOException {
-    return createMetaInfWriter(Constants.METAINF_MANIFEST);
+    return createMetaInfWriter(METAINF_MANIFEST);
   }
 
   FileObject createMetaInfWriter(String target) throws IOException {

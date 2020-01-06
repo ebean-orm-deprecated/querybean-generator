@@ -6,6 +6,7 @@ import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
+import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -27,7 +28,6 @@ public class Processor extends AbstractProcessor implements Constants {
 
   @Override
   public Set<String> getSupportedAnnotationTypes() {
-
     Set<String> annotations = new LinkedHashSet<>();
     annotations.add(ENTITY);
     annotations.add(EMBEDDABLE);
@@ -42,7 +42,6 @@ public class Processor extends AbstractProcessor implements Constants {
 
   @Override
   public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-
     processingContext.readModuleInfo();
     int count = 0;
     for (TypeElement annotation : annotations) {
@@ -69,7 +68,8 @@ public class Processor extends AbstractProcessor implements Constants {
       SimpleModuleInfoWriter writer = new SimpleModuleInfoWriter(processingContext);
       writer.write();
     } catch (Throwable e) {
-      processingContext.logError(null, "Failed to write ModuleInfoLoader " + e.getMessage());
+      e.printStackTrace();
+      processingContext.logError(null, "Failed to write ModuleInfoLoader error:" + e + " stack:" + Arrays.toString(e.getStackTrace()));
     }
   }
 
@@ -79,6 +79,7 @@ public class Processor extends AbstractProcessor implements Constants {
       beanWriter.writeRootBean();
       beanWriter.writeAssocBean();
     } catch (Throwable e) {
+      e.printStackTrace();
       processingContext.logError(element, "Error generating query beans: " + e);
     }
   }
