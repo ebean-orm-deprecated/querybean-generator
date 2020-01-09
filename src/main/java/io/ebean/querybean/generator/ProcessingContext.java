@@ -342,6 +342,13 @@ class ProcessingContext implements Constants {
     return filer.createSourceFile(factoryClassName, originatingElement);
   }
 
+  /**
+   * Create a file writer for the given class name without an originating element.
+   */
+  JavaFileObject createWriter(String factoryClassName) throws IOException {
+    return filer.createSourceFile(factoryClassName);
+  }
+
   void logError(Element e, String msg, Object... args) {
     messager.printMessage(Diagnostic.Kind.ERROR, String.format(msg, args), e);
   }
