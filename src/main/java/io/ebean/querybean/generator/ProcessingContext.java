@@ -385,6 +385,7 @@ class ProcessingContext implements Constants {
     final String pkg = packageOf(beanFullName);
     if (pkg != null) {
       allEntityPackages.add(pkg);
+      updateFactoryPackage(pkg);
     }
     if (dbName != null) {
       prefixEntities.add(dbName + ":" + beanFullName);
@@ -392,7 +393,6 @@ class ProcessingContext implements Constants {
     } else {
       prefixEntities.add(beanFullName);
       dbEntities.add(beanFullName);
-      updateFactoryPackage(pkg);
     }
   }
 
