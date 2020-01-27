@@ -77,12 +77,11 @@ class SimpleModuleInfoWriter {
   private String manifestEntityPackages(Set<String> allEntityPackages) {
     StringBuilder builder = new StringBuilder("entity-packages: ");
     for (String pkg : allEntityPackages) {
-      //one package one line
+      // one package per line
       builder.append(pkg).append("\n").append("  ");
     }
-    return builder.delete(builder.lastIndexOf("\n"),builder.length()).append("\n").toString();
+    return builder.delete(builder.lastIndexOf("\n"), builder.length()).append("\n").toString();
   }
-
 
   private void writePackage() {
 
