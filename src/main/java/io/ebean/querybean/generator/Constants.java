@@ -27,6 +27,7 @@ interface Constants {
   String DB = "io.ebean.DB";
   String FETCHGROUP = "io.ebean.FetchGroup";
   String QUERY = "io.ebean.Query";
+  String TRANSACTION = "io.ebean.Transaction";
 
   String MODULEINFO = "io.ebean.config.ModuleInfo";
   String METAINF_MANIFEST = "META-INF/ebean-generated-info.mf";

@@ -21,6 +21,7 @@ import static io.ebean.querybean.generator.Constants.QUERY;
 import static io.ebean.querybean.generator.Constants.TQASSOCBEAN;
 import static io.ebean.querybean.generator.Constants.TQPROPERTY;
 import static io.ebean.querybean.generator.Constants.TQROOTBEAN;
+import static io.ebean.querybean.generator.Constants.TRANSACTION;
 import static io.ebean.querybean.generator.Constants.TYPEQUERYBEAN;
 
 /**
@@ -77,6 +78,8 @@ class SimpleQueryBeanWriter {
     importTypes.add(DATABASE);
     importTypes.add(FETCHGROUP);
     importTypes.add(QUERY);
+    importTypes.add(TRANSACTION);
+
     if (dbName != null) {
       importTypes.add(DB);
     }
@@ -199,15 +202,6 @@ class SimpleQueryBeanWriter {
     writer.append("  }").eol();
     writer.eol();
 
-    writer.eol();
-    writer.append("  /**").eol();
-    writer.append("   * Construct with a given Database.").eol();
-    writer.append("   */").eol();
-    writer.append("  public Q%s(Database server) {", shortName).eol();
-    writer.append("    super(%s.class, server);", shortName).eol();
-    writer.append("  }").eol();
-    writer.eol();
-
     String name = (dbName == null) ? "default" : dbName;
     writer.append("  /**").eol();
     writer.append("   * Construct using the %s Database.", name).eol();
@@ -219,6 +213,27 @@ class SimpleQueryBeanWriter {
       writer.append("    super(%s.class, DB.byName(\"%s\"));", shortName, dbName).eol();
     }
     writer.append("  }").eol();
+    writer.eol();
+
+    writer.append("  /**").eol();
+    writer.append("   * Construct with a given transaction.", name).eol();
+    writer.append("   */").eol();
+    writer.append("  public Q%s(Transaction transaction) {", shortName).eol();
+    if (dbName == null) {
+      writer.append("    super(%s.class, transaction);", shortName).eol();
+    } else {
+      writer.append("    super(%s.class, DB.byName(\"%s\"), transaction);", shortName, dbName).eol();
+    }
+    writer.append("  }").eol();
+
+    writer.eol();
+    writer.append("  /**").eol();
+    writer.append("   * Construct with a given Database.").eol();
+    writer.append("   */").eol();
+    writer.append("  public Q%s(Database database) {", shortName).eol();
+    writer.append("    super(%s.class, database);", shortName).eol();
+    writer.append("  }").eol();
+    writer.eol();
 
     writer.eol();
     writer.append("  /**").eol();
