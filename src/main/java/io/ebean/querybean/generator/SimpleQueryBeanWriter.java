@@ -12,18 +12,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import static io.ebean.querybean.generator.Constants.AT_GENERATED;
-import static io.ebean.querybean.generator.Constants.AT_TYPEQUERYBEAN;
-import static io.ebean.querybean.generator.Constants.DATABASE;
-import static io.ebean.querybean.generator.Constants.DB;
-import static io.ebean.querybean.generator.Constants.FETCHGROUP;
-import static io.ebean.querybean.generator.Constants.QUERY;
-import static io.ebean.querybean.generator.Constants.TQASSOCBEAN;
-import static io.ebean.querybean.generator.Constants.TQPROPERTY;
-import static io.ebean.querybean.generator.Constants.TQROOTBEAN;
-import static io.ebean.querybean.generator.Constants.TRANSACTION;
-import static io.ebean.querybean.generator.Constants.TYPEQUERYBEAN;
-
 /**
  * A simple implementation that generates and writes query beans.
  */
@@ -73,15 +61,15 @@ class SimpleQueryBeanWriter {
       importTypes.add(generated);
     }
     importTypes.add(beanFullName);
-    importTypes.add(TQROOTBEAN);
-    importTypes.add(TYPEQUERYBEAN);
-    importTypes.add(DATABASE);
-    importTypes.add(FETCHGROUP);
-    importTypes.add(QUERY);
-    importTypes.add(TRANSACTION);
+    importTypes.add(Constants.TQROOTBEAN);
+    importTypes.add(Constants.TYPEQUERYBEAN);
+    importTypes.add(Constants.DATABASE);
+    importTypes.add(Constants.FETCHGROUP);
+    importTypes.add(Constants.QUERY);
+    importTypes.add(Constants.TRANSACTION);
 
     if (dbName != null) {
-      importTypes.add(DB);
+      importTypes.add(Constants.DB);
     }
     addClassProperties();
   }
@@ -154,14 +142,14 @@ class SimpleQueryBeanWriter {
    * Prepare the imports for writing assoc bean.
    */
   private void prepareAssocBeanImports() {
-    importTypes.remove(DB);
-    importTypes.remove(TQROOTBEAN);
-    importTypes.remove(DATABASE);
-    importTypes.remove(FETCHGROUP);
-    importTypes.remove(QUERY);
-    importTypes.add(TQASSOCBEAN);
+    importTypes.remove(Constants.DB);
+    importTypes.remove(Constants.TQROOTBEAN);
+    importTypes.remove(Constants.DATABASE);
+    importTypes.remove(Constants.FETCHGROUP);
+    importTypes.remove(Constants.QUERY);
+    importTypes.add(Constants.TQASSOCBEAN);
     if (isEntity()) {
-      importTypes.add(TQPROPERTY);
+      importTypes.add(Constants.TQPROPERTY);
       importTypes.add(origDestPackage + ".Q" + origShortName);
     }
 
@@ -307,9 +295,9 @@ class SimpleQueryBeanWriter {
       writer.append(" * THIS IS A GENERATED OBJECT, DO NOT MODIFY THIS CLASS.").eol();
       writer.append(" */").eol();
       if (processingContext.isGeneratedAvailable()) {
-        writer.append(AT_GENERATED).eol();
+        writer.append(Constants.AT_GENERATED).eol();
       }
-      writer.append(AT_TYPEQUERYBEAN).eol();
+      writer.append(Constants.AT_TYPEQUERYBEAN).eol();
       writer.append("public class Q%s<R> extends TQAssocBean<%s,R> {", shortName, origShortName).eol();
 
     } else {
@@ -319,9 +307,9 @@ class SimpleQueryBeanWriter {
       writer.append(" * THIS IS A GENERATED OBJECT, DO NOT MODIFY THIS CLASS.").eol();
       writer.append(" */").eol();
       if (processingContext.isGeneratedAvailable()) {
-        writer.append(AT_GENERATED).eol();
+        writer.append(Constants.AT_GENERATED).eol();
       }
-      writer.append(AT_TYPEQUERYBEAN).eol();
+      writer.append(Constants.AT_TYPEQUERYBEAN).eol();
       writer.append("public class Q%s extends TQRootBean<%1$s,Q%1$s> {", shortName).eol();
     }
 

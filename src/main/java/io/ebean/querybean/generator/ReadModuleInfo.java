@@ -9,8 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static io.ebean.querybean.generator.Constants.MODULEINFO;
-
 /**
  * Helper to read the current/existing prefixed entity classes.
  * <p>
@@ -30,7 +28,7 @@ class ReadModuleInfo {
 
     for (AnnotationMirror mirror : mirrors) {
       final String name = mirror.getAnnotationType().asElement().toString();
-      if (MODULEINFO.equals(name)) {
+      if (Constants.MODULEINFO.equals(name)) {
         return readEntities(mirror);
       }
     }

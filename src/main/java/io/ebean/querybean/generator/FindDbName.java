@@ -11,8 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static io.ebean.querybean.generator.Constants.DBNAME;
-
 class FindDbName {
 
   /**
@@ -48,7 +46,7 @@ class FindDbName {
     final List<? extends AnnotationMirror> mirrors = element.getAnnotationMirrors();
     for (AnnotationMirror mirror : mirrors) {
       final String name = mirror.getAnnotationType().asElement().toString();
-      if (DBNAME.equals(name)) {
+      if (Constants.DBNAME.equals(name)) {
         return mirror;
       }
     }

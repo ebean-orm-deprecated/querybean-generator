@@ -22,6 +22,7 @@ import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 import javax.tools.FileObject;
 import javax.tools.JavaFileObject;
+import javax.tools.StandardLocation;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.LineNumberReader;
@@ -34,8 +35,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-
-import static javax.tools.StandardLocation.CLASS_OUTPUT;
 
 /**
  * Context for the source generation.
@@ -447,7 +446,7 @@ class ProcessingContext implements Constants {
   }
 
   FileObject createMetaInfWriter(String target) throws IOException {
-    return filer.createResource(CLASS_OUTPUT, "", target);
+    return filer.createResource(StandardLocation.CLASS_OUTPUT, "", target);
   }
 
   Set<String> getPrefixEntities() {
@@ -477,7 +476,7 @@ class ProcessingContext implements Constants {
    */
   String loadMetaInfServices() {
     try {
-      FileObject fileObject = processingEnv.getFiler().getResource(CLASS_OUTPUT, "", METAINF_SERVICES_MODULELOADER);
+      FileObject fileObject = processingEnv.getFiler().getResource(StandardLocation.CLASS_OUTPUT, "", METAINF_SERVICES_MODULELOADER);
       if (fileObject != null) {
         Reader reader = fileObject.openReader(true);
         LineNumberReader lineReader = new LineNumberReader(reader);
