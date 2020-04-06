@@ -188,6 +188,10 @@ class ProcessingContext implements Constants {
     return hasAnnotations(element, ENTITY);
   }
 
+  boolean isEmbeddable(Element element) {
+    return hasAnnotations(element, EMBEDDABLE);
+  }
+
   /**
    * Find the DbName annotation and return name if found.
    */

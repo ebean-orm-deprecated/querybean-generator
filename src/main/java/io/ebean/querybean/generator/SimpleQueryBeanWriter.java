@@ -28,6 +28,7 @@ class SimpleQueryBeanWriter {
   private final String dbName;
   private final String beanFullName;
   private final boolean isEntity;
+  private final boolean embeddable;
   private boolean writingAssocBean;
 
   private String destPackage;
@@ -44,6 +45,7 @@ class SimpleQueryBeanWriter {
     this.destPackage = derivePackage(beanFullName) + ".query";
     this.shortName = deriveShortName(beanFullName);
     this.isEntity = processingContext.isEntity(element);
+    this.embeddable = processingContext.isEmbeddable(element);
     this.dbName = findDbName();
   }
 
@@ -53,6 +55,10 @@ class SimpleQueryBeanWriter {
 
   private boolean isEntity() {
     return isEntity;
+  }
+
+  private boolean isEmbeddable() {
+    return embeddable;
   }
 
   private void gatherPropertyDetails() {
@@ -96,8 +102,9 @@ class SimpleQueryBeanWriter {
   void writeRootBean() throws IOException {
 
     gatherPropertyDetails();
-
-    if (isEntity()) {
+    if (isEmbeddable()) {
+      processingContext.addEntity(beanFullName, dbName);
+    } else if (isEntity()) {
       processingContext.addEntity(beanFullName, dbName);
       writer = new Append(createFileWriter());
 
@@ -316,7 +323,7 @@ class SimpleQueryBeanWriter {
     writer.eol();
   }
 
-  private void writeAlias()  {
+  private void writeAlias() {
     if (!writingAssocBean) {
       writer.append("  private static final Q%s _alias = new Q%1$s(true);", shortName).eol().eol();
 
