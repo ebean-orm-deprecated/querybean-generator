@@ -5,6 +5,7 @@ import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -22,44 +23,47 @@ class ReadModuleInfo {
     this.ctx = ctx;
   }
 
-  List<String> read(Element element) {
-
+  ModuleMeta read(Element element) {
     final List<? extends AnnotationMirror> mirrors = element.getAnnotationMirrors();
-
     for (AnnotationMirror mirror : mirrors) {
       final String name = mirror.getAnnotationType().asElement().toString();
       if (Constants.MODULEINFO.equals(name)) {
-        return readEntities(mirror);
+        List<String> entities = readEntities("entities", mirror);
+        List<String> other = readEntities("other", mirror);
+        return new ModuleMeta(entities, other);
       }
     }
     return null;
   }
 
   @SuppressWarnings("unchecked")
-  private List<String> readEntities(AnnotationMirror mirror) {
-
+  private List<String> readEntities(String key, AnnotationMirror mirror) {
     final Map<? extends ExecutableElement, ? extends AnnotationValue> elementValues = mirror.getElementValues();
     final Set<? extends Map.Entry<? extends ExecutableElement, ? extends AnnotationValue>> entries = elementValues.entrySet();
 
     for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> entry : entries) {
-      if ("entities".equals(entry.getKey().getSimpleName().toString())) {
-        final Object entitiesValue = entry.getValue().getValue();
-        if (entitiesValue != null) {
-          try {
-            List<String> vals = new ArrayList<>();
-            List<AnnotationValue> coll = (List<AnnotationValue>) entitiesValue;
-            for (AnnotationValue annotationValue : coll) {
-              vals.add((String) annotationValue.getValue());
-            }
-            return vals;
-          } catch (Exception e) {
-            ctx.logError(null, "Error reading ModuleInfo annotation, err " + e);
-            return null;
-          }
-        }
-
+      if (key.equals(entry.getKey().getSimpleName().toString())) {
+        return readAttributes(entry.getValue());
       }
     }
-    return null;
+    return Collections.emptyList();
+  }
+
+  @SuppressWarnings("unchecked")
+  private List<String> readAttributes(AnnotationValue value) {
+    final Object entitiesValue = value.getValue();
+    if (entitiesValue != null) {
+      try {
+        List<String> vals = new ArrayList<>();
+        List<AnnotationValue> coll = (List<AnnotationValue>) entitiesValue;
+        for (AnnotationValue annotationValue : coll) {
+          vals.add((String) annotationValue.getValue());
+        }
+        return vals;
+      } catch (Exception e) {
+        ctx.logError(null, "Error reading ModuleInfo annotation, err " + e);
+      }
+    }
+    return Collections.emptyList();
   }
 }

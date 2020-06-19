@@ -13,6 +13,7 @@ interface Constants {
   String INHERITANCE = "javax.persistence.Inheritance";
   String ENTITY = "javax.persistence.Entity";
   String EMBEDDABLE = "javax.persistence.Embeddable";
+  String CONVERTER = "javax.persistence.Converter";
 
   String DBARRAY = "io.ebean.annotation.DbArray";
   String DBJSON = "io.ebean.annotation.DbJson";
