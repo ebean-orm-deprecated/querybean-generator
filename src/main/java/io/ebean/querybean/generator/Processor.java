@@ -32,6 +32,7 @@ public class Processor extends AbstractProcessor implements Constants {
     annotations.add(ENTITY);
     annotations.add(EMBEDDABLE);
     annotations.add(CONVERTER);
+    annotations.add(EBEAN_COMPONENT);
     annotations.add(MODULEINFO);
     return annotations;
   }
@@ -72,6 +73,9 @@ public class Processor extends AbstractProcessor implements Constants {
 
   private void processOthers(RoundEnvironment roundEnv) {
     for (Element element : roundEnv.getElementsAnnotatedWith(processingContext.converterAnnotation())) {
+      processingContext.addOther(element);
+    }
+    for (Element element : roundEnv.getElementsAnnotatedWith(processingContext.componentAnnotation())) {
       processingContext.addOther(element);
     }
   }

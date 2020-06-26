@@ -113,6 +113,10 @@ class ProcessingContext implements Constants {
     return elementUtils.getTypeElement(CONVERTER);
   }
 
+  TypeElement componentAnnotation() {
+    return elementUtils.getTypeElement(EBEAN_COMPONENT);
+  }
+
   private String generatedAnnotation(boolean jdk8) {
     if (jdk8) {
       return isTypeAvailable(GENERATED_8) ? GENERATED_8 : null;
