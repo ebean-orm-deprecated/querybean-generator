@@ -71,12 +71,16 @@ public class Processor extends AbstractProcessor implements Constants {
     return count;
   }
 
-  private void processOthers(RoundEnvironment roundEnv) {
-    for (Element element : roundEnv.getElementsAnnotatedWith(processingContext.converterAnnotation())) {
-      processingContext.addOther(element);
-    }
-    for (Element element : roundEnv.getElementsAnnotatedWith(processingContext.componentAnnotation())) {
-      processingContext.addOther(element);
+  private void processOthers(RoundEnvironment round) {
+    processOthers(round, processingContext.converterAnnotation());
+    processOthers(round, processingContext.componentAnnotation());
+  }
+
+  private void processOthers(RoundEnvironment roundEnv, TypeElement otherType) {
+    if (otherType != null) {
+      for (Element element : roundEnv.getElementsAnnotatedWith(otherType)) {
+        processingContext.addOther(element);
+      }
     }
   }
 
