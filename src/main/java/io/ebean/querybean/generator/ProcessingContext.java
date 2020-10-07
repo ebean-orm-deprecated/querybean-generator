@@ -287,11 +287,38 @@ class ProcessingContext implements Constants {
       return createPropertyTypeAssoc(typeDef(typeMirror));
     }
 
+    final PropertyType result;
     if (typeMirror.getKind() == TypeKind.DECLARED) {
-      return createManyTypeAssoc(field, (DeclaredType) typeMirror);
+      result = createManyTypeAssoc(field, (DeclaredType) typeMirror);
+    } else {
+      result = null;
     }
 
-    return null;
+    if (result != null) {
+      return result;
+    } else {
+      if (typeInstanceOf(typeMirror, "java.lang.Comparable")) {
+        return new PropertyTypeScalarComparable(typeDef(typeMirror));
+      } else {
+        return new PropertyTypeScalar(typeDef(typeMirror));
+      }
+    }
+  }
+
+  private boolean typeInstanceOf(final TypeMirror typeMirror, final CharSequence desiredInterface) {
+    TypeElement typeElement = (TypeElement) typeUtils.asElement(typeMirror);
+    if (typeElement == null || typeElement.getQualifiedName().contentEquals("java.lang.Object")) {
+      return false;
+    }
+    if (typeElement.getQualifiedName().contentEquals(desiredInterface)) {
+      return true;
+    }
+
+    return typeInstanceOf(typeElement.getSuperclass(), desiredInterface) ||
+      typeElement
+        .getInterfaces()
+        .stream()
+        .anyMatch(t -> typeInstanceOf(t, desiredInterface));
   }
 
   private PropertyType createManyTypeAssoc(VariableElement field, DeclaredType declaredType) {
