@@ -297,8 +297,28 @@ class ProcessingContext implements Constants {
     if (result != null) {
       return result;
     } else {
-      return new PropertyTypeScalar(typeDef(typeMirror));
+      if (typeInstanceOf(typeMirror, "java.lang.Comparable")) {
+        return new PropertyTypeScalarComparable(typeDef(typeMirror));
+      } else {
+        return new PropertyTypeScalar(typeDef(typeMirror));
+      }
     }
+  }
+
+  private boolean typeInstanceOf(final TypeMirror typeMirror, final CharSequence desiredInterface) {
+    TypeElement typeElement = (TypeElement) typeUtils.asElement(typeMirror);
+    if (typeElement == null || typeElement.getQualifiedName().contentEquals("java.lang.Object")) {
+      return false;
+    }
+    if (typeElement.getQualifiedName().contentEquals(desiredInterface)) {
+      return true;
+    }
+
+    return typeInstanceOf(typeElement.getSuperclass(), desiredInterface) ||
+      typeElement
+        .getInterfaces()
+        .stream()
+        .anyMatch(t -> typeInstanceOf(t, desiredInterface));
   }
 
   private PropertyType createManyTypeAssoc(VariableElement field, DeclaredType declaredType) {
