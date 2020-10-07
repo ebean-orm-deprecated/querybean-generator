@@ -287,11 +287,18 @@ class ProcessingContext implements Constants {
       return createPropertyTypeAssoc(typeDef(typeMirror));
     }
 
+    final PropertyType result;
     if (typeMirror.getKind() == TypeKind.DECLARED) {
-      return createManyTypeAssoc(field, (DeclaredType) typeMirror);
+      result = createManyTypeAssoc(field, (DeclaredType) typeMirror);
+    } else {
+      result = null;
     }
 
-    return null;
+    if (result != null) {
+      return result;
+    } else {
+      return new PropertyTypeScalar(typeDef(typeMirror));
+    }
   }
 
   private PropertyType createManyTypeAssoc(VariableElement field, DeclaredType declaredType) {
